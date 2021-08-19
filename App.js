@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, Platform, StatusBar } from 'react-native';
 import { NavigationContainer, DefaultTheme, } from '@react-navigation/native';
 import { navigationRef, navigate } from './RootNavigation'
 import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
-import { Button } from 'react-native-elements'
+import { Button, Icon, Avatar } from 'react-native-elements'
 import Login from './src/screens/Login';
 import UserRegistration from './src/screens/UserRegister';
 
@@ -35,7 +35,7 @@ export default function App(props) {
       <Stack.Navigator initialRouteName="Test"
         screenOptions={Platform.OS === 'android' ?
           {
-            headerStyle: {},
+            headerStyle: { backgroundColor: myTheme.colors.secondary },
             headerTitleAlign: 'center',
             headerBackTitleStyle: { marginBottom: '40%' },
           } :
@@ -100,17 +100,36 @@ export default function App(props) {
           ),
         }} />
 
-        <Stack.Screen name="Chat" component={Chat} options={{
-          headerShown: true,
-          headerTitle: "",
-          headerLeft: () => (
-            <Button
-              title="Back"
-              type="clear"
-              onPress={() => navigate("ChatList")}
-            />
-          ),
-        }} />
+        <Stack.Screen name="Chat" component={Chat}
+          options={({ route }) => ({
+            title: route.params.item.name,
+            headerLeft: () => (
+              <Button
+                title="Back"
+                type="clear"
+                onPress={() => navigate("ChatList")}
+              />
+            ),
+            headerRight: () => (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  marginRight: 10
+                }}
+              >
+                <Icon
+                  name='video-camera'
+                  type='font-awesome'
+                />
+                <Icon
+                  name='phone'
+                  type='font-awesome'
+                />
+              </View>
+            ),
+          })} />
         {/* <Stack.Screen name="Test" component={Test} /> */}
       </Stack.Navigator>
     </NavigationContainer>
