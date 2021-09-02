@@ -2,6 +2,8 @@ import { useTheme } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native'
 import { Text, Input, CheckBox, Button, Badge } from 'react-native-elements'
+import firebase from 'firebase';
+import app from 'firebase/app'
 
 function UserRegistration(props) {
 
@@ -34,16 +36,16 @@ function UserRegistration(props) {
         if (isSelected === false) {
             setbadgeMessage("Agree with terms and condition")
         }
-        // if (inputs.fname == "" || inputs.lname == "" || inputs.email == "" || inputs.password == "" || inputs.confirm == "") {
-        //     setbadgeMessage("Empty fields")
-        // } else {
-        //     if (isSelected === false) {
-        //         setbadgeMessage("Please agree with terms and conditions")
-        //     } else {
+        if (inputs.fname == "" || inputs.lname == "" || inputs.email == "" || inputs.password == "" || inputs.confirm == "") {
+            setbadgeMessage("Empty fields")
+        } else {
+            if (isSelected === false) {
+                setbadgeMessage("Please agree with terms and conditions")
+            } else {
+                console.log('hello')
+            }
+        }
 
-        //     }
-        // }
-        props.navigation.navigate('UserDetail')
     }
 
     const { colors } = useTheme()
@@ -63,7 +65,7 @@ function UserRegistration(props) {
 
                 <View style={{ marginTop: 50 }}>
                     <Input
-                        placeholder="First Name"
+                        placeholder=""
                         style={styles.inputText}
                         autoCapitalize='none'
                         autoCompleteType='off'
@@ -77,7 +79,7 @@ function UserRegistration(props) {
                 </View>
                 <View>
                     <Input
-                        placeholder="Middle Name"
+                        placeholder=""
                         style={styles.inputText}
                         autoCapitalize='none'
                         autoCompleteType='off'
@@ -92,7 +94,7 @@ function UserRegistration(props) {
 
                 <View>
                     <Input
-                        placeholder="Last Name"
+                        placeholder=""
                         style={styles.inputText}
                         autoCapitalize='none'
                         autoCompleteType='off'
@@ -106,7 +108,7 @@ function UserRegistration(props) {
 
                 <View>
                     <Input
-                        placeholder="Email"
+                        placeholder="a@bc.com"
                         style={styles.inputText}
                         autoCapitalize='none'
                         autoCompleteType='off'
@@ -122,7 +124,7 @@ function UserRegistration(props) {
 
                 <View>
                     <Input
-                        placeholder="Password"
+                        placeholder=""
                         style={styles.inputText}
                         secureTextEntry={true}
                         autoCapitalize='none'
@@ -142,7 +144,7 @@ function UserRegistration(props) {
 
                 <View>
                     <Input
-                        placeholder="Confirm Password"
+                        placeholder=""
                         style={styles.inputText}
                         secureTextEntry={true}
                         autoCapitalize='none'
@@ -173,9 +175,38 @@ function UserRegistration(props) {
                     <View>
                         <Button
                             title="Create Account"
-                            onPress={() => submit()}
+                            onPress={() => {
+                                firebase.auth().createUserWithEmailAndPassword(inputs.email, inputs.password)
+                                    .then(userCredential => {
+                                        const user = firebase.auth().currentUser;
+                                        user.updateProfile({
+                                            displayName: inputs.fname
+                                        }).then(() => {
+                                            console.log('update succesfull')
+                                            const db = firebase.firestore();
+                                            db.collection("users")
+                                                .doc(user.uid)
+                                                .set({
+                                                    email: user.email,
+                                                    fName: inputs.fname,
+                                                    mName: inputs.mname,
+                                                    lName: inputs.lname,
+                                                    bookings: []
+
+                                                });
+                                            props.navigation.navigate('Dashboard', { user: user })
+                                        })
+                                    })
+                                    .catch(error => {
+                                        var errorCode = error.code;
+                                        var errorMessage = error.message;
+                                        console.log("error: ", error)
+                                    })
+                            }}
                             buttonStyle={{ width: 220, backgroundColor: colors.secondary, borderRadius: 20 }}
                         />
+
+
                     </View>
 
                     <View style={styles.terms}>

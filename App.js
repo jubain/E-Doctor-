@@ -1,10 +1,13 @@
 
 import React from 'react';
+import firebase from 'firebase/app';
+import { firebaseConfig } from './src/config/config';
 import { StyleSheet, Text, View, Platform, StatusBar } from 'react-native';
 import { NavigationContainer, DefaultTheme, } from '@react-navigation/native';
 import { navigationRef, navigate } from './RootNavigation'
 import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 import { Button, Icon, Avatar } from 'react-native-elements'
+
 import Login from './src/screens/Login';
 import UserRegistration from './src/screens/UserRegister';
 
@@ -16,7 +19,27 @@ import Doctor from './src/screens/Doctor';
 import DoctorDetails from './src/screens/UserDetails';
 import ChatList from './src/screens/ChatList';
 import Chat from './src/screens/Chat';
+import Loading from './src/screens/Loading';
+import UserDetails from './src/screens/UserDetails';
+import DoctorRegister from './src/screens/DoctorRegister';
 
+let firebaseAppDefined = false
+
+setInterval(() => {
+  if (!firebaseAppDefined) {
+    if (!firebase.app()) {
+      // Your code here
+      firebase.initializeApp(firebaseConfig)
+      if (!firebase.apps.length) {
+
+      } else {
+        firebase.app(); // if already initialized, use that one
+      }
+
+      firebaseAppDefined = true
+    }
+  }
+}, 100)
 
 export default function App(props) {
   const Stack = createStackNavigator()
@@ -28,11 +51,11 @@ export default function App(props) {
       secondary: '#C84771'
     }
   }
-  console.log(props.navigation)
+
   return (
 
     <NavigationContainer theme={myTheme} ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Test"
+      <Stack.Navigator initialRouteName="Login"
         screenOptions={Platform.OS === 'android' ?
           {
             headerStyle: { backgroundColor: myTheme.colors.secondary },
@@ -41,8 +64,19 @@ export default function App(props) {
           } :
           {
             headerTitleStyle: { fontWeight: 'bold' },
+            headerStyle: { backgroundColor: '#C84771' }
           }}>
-        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Loading" component={Loading} />
+        <Stack.Screen name="Login" component={Login}
+          options={{
+            headerLeft: () => (
+              <Button
+                type='clear'
+              />
+            ),
+            gestureEnabled: false
+          }}
+        />
         <Stack.Screen name="UserRegister" component={UserRegistration} options={{
           headerShown: true, headerTitle: "Sign Up",
           headerLeft: () => (
@@ -53,8 +87,19 @@ export default function App(props) {
             />
           ),
         }} />
-        <Stack.Screen name="UserDetail" component={DoctorDetails} options={{ title: "Detail" }} />
-        <Stack.Screen name="Dashboard" component={DashBoard} options={{ headerShown: false }} />
+        <Stack.Screen name="DoctorRegister" component={DoctorRegister} options={{
+          headerShown: true, headerTitle: "Register",
+          headerLeft: () => (
+            <Button
+              title="Back"
+              type="clear"
+              onPress={() => navigate("Login")}
+            />
+          ),
+        }} />
+        <Stack.Screen name="UserDetails" component={UserDetails} options={{ title: "Detail" }} />
+        <Stack.Screen name="Dashboard" component={DashBoard} options={{ gestureEnabled: false, headerShown: false }} />
+        {/* <Stack.Screen name="DoctorDashboard" component={DoctorDashboard} options={{ headerShown: false }} /> */}
         <Stack.Screen name="Bookings" component={Bookings} options={{
           headerShown: true, headerTitle: "",
           headerLeft: () => (

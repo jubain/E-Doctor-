@@ -5,7 +5,7 @@ import { useTheme } from '@react-navigation/native';
 import { Image } from 'react-native'
 import Icon from 'react-native-vector-icons/AntDesign'
 import { FacebookSocialButton, GoogleSocialButton } from 'react-native-social-buttons'
-
+import firebase from 'firebase';
 
 function Login(props) {
     const [inputs, setinputs] = useState({
@@ -13,9 +13,21 @@ function Login(props) {
         password: ''
     })
     const [errorMessage, seterrorMessage] = useState("")
-
     const onPressLogin = () => {
         if (inputs.email !== "" || inputs.password !== "") {
+            firebase.auth().signInWithEmailAndPassword(inputs.email, inputs.password)
+                .then((userCredential) => {
+                    // Signed in
+                    console.log('from login', userCredential)
+                    //var user = userCredential.user;
+                    props.navigation.navigate('Loading')
+                    // ...
+                })
+                .catch((error) => {
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    alert(error)
+                });
 
         } else {
             seterrorMessage("Empty Field")
@@ -101,7 +113,9 @@ function Login(props) {
                             <Text style={{ fontSize: 15 }}>Don't have an Account?</Text>
                             <Text onPress={() => props.navigation.navigate('UserRegister')} style={{ fontWeight: 'bold', fontSize: 15, color: '#C84771' }}>  Register</Text>
                         </View>
-
+                        <View>
+                            <Text onPress={() => props.navigation.navigate('DoctorRegister')} style={{ fontWeight: 'bold', fontSize: 15, color: '#C84771' }}>Are you a Doctor?</Text>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -150,7 +164,8 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: 30
+        paddingTop: 30,
+        marginBottom: 15
     }
 })
 

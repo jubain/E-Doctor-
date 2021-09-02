@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList } from 'react-native';
 import { StyleSheet, View, TouchableOpacity, ImageBackground } from 'react-native'
 import { ListItem, Avatar, Button, Text } from 'react-native-elements'
 import moment from 'moment';
+import { TextInput } from 'react-native';
+import firebase from 'firebase';
 
 
 // id: '1',
@@ -73,6 +75,7 @@ const chats = [{
     },
 }]
 
+
 const renderItem = ({ item }) => (
     <View style={styles.container}>
         <View style={[
@@ -94,14 +97,62 @@ const renderItem = ({ item }) => (
 )
 
 function Chat(props) {
+    const [message, setmessage] = useState("")
+    const [chats, setchats] = useState()
+
+    const db = firebase.firestore()
+
+    const sendMessage = () => {
+
+        db.collection('chats')
+            .doc('usyihPOZPYxXUTXAX8LX').update({
+                "content.doctor": firebase.firestore.FieldValue.arrayUnion(message)
+            }).then(() => {
+                console.log('all good')
+                setmessage('')
+            }).catch(err => {
+                console.log(err)
+            })
+
+        // db.collection('chats').get()
+        //     .then((querySnapshot) => {
+        //         querySnapshot.forEach((doc) => {
+        //             console.log(doc.data())
+        //         });
+        //     })
+        //     .catch((error) => {
+        //         console.log("Error getting documents: ", error);
+        //     });
+
+    }
+
+    const getMessage = () => {
+
+    }
+
+    useEffect(() => {
+
+    }, [])
+
     return (
-        <ImageBackground source={{ uri: 'https://images.pexels.com/photos/2486168/pexels-photo-2486168.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' }} style={{ width: '100%', height: '100%' }}>
+        <ImageBackground source={{ uri: 'https://wallpaperaccess.com/full/797185.png' }} style={{ width: '100%', height: '100%' }}>
             <FlatList
                 data={chats}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 inverted
             />
+
+            <View style={styles.textContainer}>
+                <TextInput
+                    value={message}
+                    numberOfLines={6}
+                    multiline style={{ flex: 1 }}
+                    placeholder="Type here..."
+                    onChangeText={setmessage}
+                    onSubmitEditing={sendMessage}
+                />
+            </View>
         </ImageBackground>
     );
 }
@@ -128,6 +179,14 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-end',
         fontSize: 12,
         color: 'gray'
+    },
+    textContainer: {
+        backgroundColor: 'white',
+        padding: 10,
+        borderRadius: 50,
+        marginHorizontal: 10,
+        marginBottom: 20,
+        height: '6%'
     }
 })
 

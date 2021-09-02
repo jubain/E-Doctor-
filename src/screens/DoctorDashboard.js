@@ -1,35 +1,25 @@
 
 import { useTheme } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Image, TouchableOpacity, FlatList, Platform } from 'react-native';
-import { Avatar, Button, Icon, Text, SearchBar, ListItem, Overlay } from 'react-native-elements'
+import { Avatar, Button, Icon, Text, SearchBar, ListItem } from 'react-native-elements'
 import firebase from 'firebase';
-import { getAuth, signOut } from 'firebase/auth'
-
-var db = firebase.firestore();
-const hospitals = [
-
-]
 
 
-// const findHospital = () => {
-//     db.collection("hospitals").get().then((querySnapshot) => {
-//         querySnapshot.forEach((doc) => {
-//             console.log(doc.data())
-//             hospitals.push(doc)
-//         });
-//     }).catch(error => {
-//         console.log(error)
-//     })
-
-// }
 
 function DashBoard(props) {
     const { colors } = useTheme()
-    const user = firebase.auth().currentUser;
+
     const [userHospital, setUserHospital] = useState("")
 
     const [searchBarClick, setsearchBarClick] = useState("false")
+
+    const hospitals = [
+        { id: 1, name: 'Devika' },
+        { id: 2, name: 'Jubeen' },
+        { id: 3, name: 'Babyka' },
+        { id: 4, name: 'Devbeen' },
+    ]
 
     const [foundHospitals, setfoundHospitals] = useState([{}])
 
@@ -46,28 +36,16 @@ function DashBoard(props) {
                 console.log("result not found")
             }
         })
-        hospitals.find(hospital => {
-            if (hospital.name === userHospital) {
-                console.log("Found the hospital")
-                tempArray.push(hospital.name)
+        // hospitals.find(hospital => {
+        //     if (hospital.name === userHospital) {
+        //         console.log("Found the hospital")
+        //         tempArray.push(hospital.name)
 
-            }
-            setfoundHospitals(tempArray)
-        })
+        //     }
+        //     setfoundHospitals(tempArray)
+        // })
     }
 
-    // Setting button Overlay
-    const [visible, setVisible] = useState(false);
-
-    const toggleOverlay = () => {
-        setVisible(!visible);
-    };
-    // Setting Overlay Ends
-
-
-    // useEffect(() => {
-    //     findHospital()
-    // }, [])
     const renderItem = ({ item }) => {
         return (
             <TouchableOpacity onPress={() => {
@@ -81,6 +59,7 @@ function DashBoard(props) {
             </TouchableOpacity>
         )
     }
+
     return (
         <View style={Platform.OS === 'android' ? styles.container2 : styles.container}>
             <View style={styles.avatar}>
@@ -94,33 +73,19 @@ function DashBoard(props) {
                 <Icon
                     type="feather"
                     name="settings"
-                    onPress={toggleOverlay}
+                    onPress={() => {
+                        firebase.auth().signOut().then(() => {
+                            props.navigation.navigate('Loading')
+                        }).catch((error) => {
+                            // An error happened.
+                        });
+                    }}
                 />
-                <Overlay isVisible={visible} onBackdropPress={toggleOverlay}>
-                    <View style={styles.settings}>
-                        <Icon name="sign-out" type="font-awesome" onPress={() => {
-                            firebase.auth().signOut().then(() => {
-                                props.navigation.navigate('Login')
-                            }).catch(error => {
-                                console.log(error)
-                            })
-                        }} />
-                        <Text>Sign Out</Text>
-                    </View>
-
-                    <View style={styles.settings}>
-                        <Icon name="account-circle" type="material-icons" onPress={() => {
-
-                        }} />
-                        <Text>Edit Account</Text>
-                    </View>
-
-                </Overlay>
             </View>
             <View style={styles.greeting}>
                 <Text >Hello, </Text>
                 <View style={styles.userAndPill}>
-                    <Text h3>{user.displayName}</Text>
+                    <Text h3>User!</Text>
                     <Icon
                         type="font-awesome-5"
                         name="pills"
@@ -188,10 +153,10 @@ function DashBoard(props) {
                             name="book"
                             color='white'
                         />
-                        <Text style={{ fontSize: 12, color: "white" }}>Bookings</Text>
+                        <Text style={{ fontSize: 12, color: "white" }}>Book Appointment</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("Book")}>
+                    <TouchableOpacity style={styles.button}>
                         <Icon
                             type="fontisto"
                             name="doctor"
@@ -210,15 +175,13 @@ function DashBoard(props) {
                     </TouchableOpacity>
                 </View>
                 <View style={styles.buttons2}>
-                    <TouchableOpacity style={styles.button} onPress={() => {
-                        props.navigation.navigate('UserDetails')
-                    }}>
+                    <TouchableOpacity style={styles.button}>
                         <Icon
                             type="font-awesome-5"
-                            name="book-medical"
+                            name="clinic-medical"
                             color='white'
                         />
-                        <Text style={{ fontSize: 12, color: "white" }}>Medical History</Text>
+                        <Text style={{ fontSize: 12, color: "white" }}>Find Pharmacy</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.button}>
@@ -332,12 +295,6 @@ const styles = StyleSheet.create({
         height: '100%',
         borderRadius: 15,
         marginHorizontal: 5
-    },
-    settings: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        alignItems: 'center',
     }
 })
 
