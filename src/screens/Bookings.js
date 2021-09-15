@@ -4,10 +4,10 @@ import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ListItem, Text, Button, Icon } from 'react-native-elements'
 
 const bookings = [
-    { id: '1', time: '2:00', date: '4-7-2021', doctor: 'Dr Devika' },
-    { id: '2', time: '3:00', date: '02-7-2021', doctor: 'Dr Devika' },
-    { id: '3', time: '4:00', date: '02-8-2021', doctor: 'Dr Devika' },
-    { id: '4', time: '1:00', date: '02-9-2021', doctor: 'Dr Devika' }
+    // { id: '1', time: '2:00', date: '4-7-2021', doctor: 'Dr Devika' },
+    // { id: '2', time: '3:00', date: '02-7-2021', doctor: 'Dr Devika' },
+    // { id: '3', time: '4:00', date: '02-8-2021', doctor: 'Dr Devika' },
+    // { id: '4', time: '1:00', date: '02-9-2021', doctor: 'Dr Devika' }
 ]
 
 const date = new Date()

@@ -55,7 +55,7 @@ export default function App(props) {
   return (
 
     <NavigationContainer theme={myTheme} ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Login"
+      <Stack.Navigator initialRouteName="Loading"
         screenOptions={Platform.OS === 'android' ?
           {
             headerStyle: { backgroundColor: myTheme.colors.secondary },
@@ -147,7 +147,7 @@ export default function App(props) {
 
         <Stack.Screen name="Chat" component={Chat}
           options={({ route }) => ({
-            title: route.params.item.name,
+            title: route.params.item.doctorName,
             headerLeft: () => (
               <Button
                 title="Back"

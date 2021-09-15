@@ -17,7 +17,7 @@ import firebase from 'firebase';
 //     name: 'Lukas',
 //     imageUri: 'https://scontent.fkiv3-1.fna.fbcdn.net/v/t1.0-1/p200x200/107443858_3074598385966770_1929559809312242379_n.jpg?_nc_cat=107&_nc_sid=7206a8&_nc_eui2=AeGly5fZLQUfAKei_EiACEq5Dfw2T_M-BQMN_DZP8z4FA_aLEVK_8e0dKvl_5vxVO0Zn-4OPzQ9pKS0c0XeXd898&_nc_ohc=z1ydC_UL4KsAX_tfrbv&_nc_oc=AQknywM4y1IAQaQZaZkPdtkUmaem060LXSByeTx3pdQXWfxW2_tdzfgRsQIXQK_zV94&_nc_ht=scontent.fkiv3-1.fna&tp=6&oh=69508c88f073f64f432fc1f1ab9299e8&oe=5F9C5FD5',
 // }],
-const chats = [{
+const chat = [{
     id: 'm1',
     content: 'How are you, Lukas!',
     createdAt: '2021-10-10T12:48:00.000Z',
@@ -81,24 +81,45 @@ const renderItem = ({ item }) => (
         <View style={[
             styles.messageBox,
             {
-                backgroundColor: item.user.id === 'u1' ? '#C84771' : '#BEBDB8',
-                marginLeft: item.user.id === 'u1' ? 50 : 0,
-                marginRight: item.user.id === 'u1' ? 0 : 50
+                backgroundColor: item.userId === 'Jubeen' ? '#C84771' : '#BEBDB8',
+                marginLeft: item.userId === 'Jubeen' ? 50 : 0,
+                marginRight: item.userId === 'Jubeen' ? 0 : 50
             }
         ]}>
-            {item.user.id !== 'u1' && <Text style={styles.name}>{item.user.name}</Text>}
-            <Text style={styles.message}>{item.content}</Text>
-            {item.user.id !== 'u1' && <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>}
-
+            {item.userId !== 'Jubeen' && <Text style={styles.name}>{item.userId}</Text>}
+            <Text style={styles.message}>{item.message}</Text>
+            {/* {item.userId !== 'Jubeen' && <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>} */}
         </View>
-
     </View>
-
 )
+
+// const renderItem = ({ item }) => {
+//     return (
+//         <View style={styles.container}>
+//             <View style={[
+//                 styles.messageBox,
+//                 {
+//                     backgroundColor: item.user.id === 'u1' ? '#C84771' : '#BEBDB8',
+//                     marginLeft: item.user.id === 'u1' ? 50 : 0,
+//                     marginRight: item.user.id === 'u1' ? 0 : 50
+//                 }
+//             ]}>
+//                 {item.user.id !== 'u1' && <Text style={styles.name}>{item.user.name}</Text>}
+//                 <Text style={styles.message}>{item.content}</Text>
+//                 {item.user.id !== 'u1' && <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>}
+
+//             </View>
+
+//         </View>
+//     )
+// }
+
 
 function Chat(props) {
     const [message, setmessage] = useState("")
     const [chats, setchats] = useState()
+
+    const [messageAndChat, setmessageAndChat] = useState()
 
     const db = firebase.firestore()
 
@@ -126,18 +147,71 @@ function Chat(props) {
 
     }
 
-    const getMessage = () => {
 
+    const sendChat = () => {
+
+        db.collection('chats')
+            .doc('ViNAI6NyxKQj5wLZDcSo').update({
+                "contents": firebase.firestore.FieldValue.arrayUnion({
+                    id: `${Math.random()}`,
+                    message: message,
+                    userId: 'Devika'
+                })
+            }).then(() => {
+                console.log('all good')
+                setmessage('')
+            }).catch(err => {
+                console.log(err)
+            })
+    }
+
+    const getMessage = () => {
+        db.collection('chats').doc('ViNAI6NyxKQj5wLZDcSo').get()
+            .then((doc) => {
+                let tempArray = []
+                if (doc.exists) {
+                    setmessageAndChat(tempArray)
+                    doc.data().contents.forEach(data => {
+                        tempArray.push(data)
+                    });
+                    //tempArray.push(doc.data().contents)
+                } else {
+                    // doc.data() will be undefined in this case
+                    console.log("No such document!");
+                }
+                setmessageAndChat(tempArray)
+
+            }).catch(err => {
+                console.log(err)
+            })
     }
 
     useEffect(() => {
+        db.collection('chats').doc('ViNAI6NyxKQj5wLZDcSo').get()
+            .then((doc) => {
+                let tempArray = []
+                doc.data().contents.forEach(data => {
+                    tempArray.push(data)
+                });
+                //tempArray.push(doc.data().contents)
+                setmessageAndChat(tempArray.reverse())
 
-    }, [])
+            }).catch(err => {
+                console.log(err)
+            })
+    }, [message])
 
     return (
         <ImageBackground source={{ uri: 'https://wallpaperaccess.com/full/797185.png' }} style={{ width: '100%', height: '100%' }}>
+            {/* <FlatList
+                data={messageAndChat}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                inverted
+            /> */}
+            {/* {console.log('new one', messageAndChat)} */}
             <FlatList
-                data={chats}
+                data={messageAndChat}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 inverted
@@ -150,7 +224,7 @@ function Chat(props) {
                     multiline style={{ flex: 1 }}
                     placeholder="Type here..."
                     onChangeText={setmessage}
-                    onSubmitEditing={sendMessage}
+                    onSubmitEditing={sendChat}
                 />
             </View>
         </ImageBackground>
@@ -159,7 +233,7 @@ function Chat(props) {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 10
+        padding: 10,
     },
     messageBox: {
         backgroundColor: '#C84771',

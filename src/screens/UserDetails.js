@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlatList, StyleSheet, View, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native'
-import { Text, Input, ListItem, Chip, Badge, Button } from 'react-native-elements'
+import { Text, Input, ListItem, Chip, Badge, Button, Icon } from 'react-native-elements'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useTheme } from '@react-navigation/native';
+import SelectDropdown from 'react-native-select-dropdown'
+import firebase from 'firebase';
+
+
+const gender = ["Male", "Female", "Prefer not to say"]
+const country = ["Nepal +977", "UK +44"]
+//Firebase
+const user = firebase.auth().currentUser;
+const db = firebase.firestore();
 
 function UserDetails(props) {
 
@@ -16,13 +25,14 @@ function UserDetails(props) {
 
     const [date, setDate] = useState(new Date(1598051730000));
     const [mode, setMode] = useState('date');
-    const [show, setShow] = useState(false);
+    const [show, setShow] = useState(true);
 
     const onChange = (event, selectedDate) => {
         setbuttonColour('#dddddd')
         const currentDate = selectedDate || date;
         setShow(Platform.OS === 'ios');
         setDate(currentDate);
+        setdob(selectedDate)
     };
 
     const showMode = (currentMode) => {
@@ -36,15 +46,11 @@ function UserDetails(props) {
 
     // Date picker ends
 
-    // Gender
-    const [open, setOpen] = useState(false);
-    const [value, setValue] = useState(null);
-    const [items, setItems] = useState([
-        { label: 'Male', value: 'Male' },
-        { label: 'Female', value: 'Female' },
-        { label: 'Prefer not to say', value: 'Prefer not to say' }
-    ]);
-    // Gender Ends
+    const [userGender, setuserGender] = useState()
+    const [phone, setphone] = useState('')
+    const [dob, setdob] = useState()
+    const [medicalHistory, setmedicalHistory] = useState()
+
 
     const conditions = [
         { id: '1', name: 'AIDS/HIV' }, { id: '2', name: "Alzheimer's" }, { id: '3', name: "Anemia" }, { id: '4', name: "Asthma" }, { id: '5', name: "Blood Disease" },
@@ -81,9 +87,6 @@ function UserDetails(props) {
 
     const renderItem = ({ item }) => {
 
-        // const backgroundColor = item.id === selectedId ? "" : "white";
-        // const color = item.id === selectedId ? 'white' : 'black';
-
         return (
             <TouchableOpacity
                 onPress={() => {
@@ -98,6 +101,7 @@ function UserDetails(props) {
                     setbadgeMessage(`${item.name} added`)
                     setbadgeColour('success')
                     setbackgroundColour('red')
+                    setmedicalHistory(tempArray)
                 }
                 }
                 style={{ backgroundColor: backgroundColour }}
@@ -111,6 +115,35 @@ function UserDetails(props) {
         )
     }
 
+    const updateUserDetail = () => {
+        db.collection("users").doc(user.uid).update({
+            dob: `${dob}`,
+            gender: userGender,
+            phone: phone,
+            history: medicalHistory
+        }).then(() => {
+            console.log('user detail updated')
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+
+    const getUserDetail = () => {
+        if (user.uid !== undefined) {
+            db.collection("users").doc(user.uid).get()
+                .then((doc) => {
+                    setdob(doc.data().dob)
+                    setuserGender(doc.data().gender)
+                    setphone(doc.data().phone)
+                })
+        } else {
+            console.log('no user')
+        }
+    }
+
+    useEffect(() => {
+        getUserDetail()
+    })
 
     return (
         <View style={{
@@ -121,13 +154,12 @@ function UserDetails(props) {
             paddingTop: 20,
             backgroundColor: colors.primary
         }}>
-
+            {console.log(dob)}
             {badgeMessage != "" ?
                 <Badge containerStyle={{ position: 'absolute' }} textStyle={{ fontWeight: 'bold' }} status={badgeColour} value={badgeMessage} />
                 : null}
             <View style={styles.dob}>
                 <Text style={{ fontWeight: 'bold' }}>Date of Birth</Text>
-                <Button onPress={showDatepicker} titleStyle={{ color: buttonColour, fontSize: 15 }} type='clear' title="Select Date" />
                 {show && (
                     <DateTimePicker
                         testID="dateTimePicker"
@@ -146,20 +178,17 @@ function UserDetails(props) {
                     <Text style={{ fontWeight: 'bold' }}>Gender</Text>
                 </View>
                 <View style={{ width: '50%' }}>
-                    <DropDownPicker
-                        open={open}
-                        value={value}
-                        items={items}
-                        setOpen={setOpen}
-                        setValue={setValue}
-                        setItems={setItems}
-                        style={{ backgroundColor: colors.secondary, borderRadius: 20, borderWidth: 0 }}
-                        textStyle={{ fontSize: 12, color: 'white' }}
-                        labelStyle={{
-                            fontWeight: "bold"
+                    <SelectDropdown
+                        data={gender}
+                        defaultButtonText={userGender}
+                        onSelect={(selectedItem, index) => {
+                            console.log(selectedItem, index)
+                            setuserGender(selectedItem)
                         }}
-                        dropDownContainerStyle={{ backgroundColor: colors.secondary, borderWidth: 0 }}
-                        bottomOffset={100}
+                        buttonStyle={{ width: '95%', borderRadius: 5 }}
+                        buttonTextStyle={{ fontSize: 15 }}
+                        rowTextStyle={{ fontSize: 15 }}
+
                     />
                 </View>
             </View>
@@ -169,9 +198,31 @@ function UserDetails(props) {
                     maxLength={10}
                     textContentType='telephoneNumber'
                     label="Phone"
+                    value={phone}
+                    onChangeText={text => setphone({ ...phone, text })}
                     keyboardType='number-pad'
                     labelStyle={{ fontSize: 14, color: 'black' }}
                     inputStyle={{ fontSize: 15 }}
+                    containerStyle={{ zIndex: 0 }}
+                    leftIcon={
+                        <SelectDropdown
+                            data={country}
+                            defaultButtonText={<Icon
+                                name="earth"
+                                type="fontisto"
+                                style={{}}
+                            />}
+                            onSelect={(selectedItem, index) => {
+                                console.log(selectedItem)
+                            }}
+
+                            buttonStyle={{ width: '95%', borderRadius: 5, backgroundColor: 'white' }}
+                            buttonTextStyle={{ fontSize: 15 }}
+                            rowTextStyle={{ fontSize: 15 }}
+                            dropdownStyle={{ width: 500 }}
+                        />
+                    }
+                    leftIconContainerStyle={{ width: '35%', marginBottom: 5 }}
                 />
             </View>
             <View style={{ display: 'flex', alignItems: 'center' }}>
@@ -215,7 +266,7 @@ function UserDetails(props) {
                                 title="Next"
                                 buttonStyle={{ width: 90, backgroundColor: colors.secondary, height: 90, borderRadius: 50, opacity: .8 }}
                                 titleStyle={{ fontWeight: 'bold' }}
-                                onPress={() => props.navigation.navigate('Dashboard')}
+                                onPress={updateUserDetail}
                             />
                         </View>
 

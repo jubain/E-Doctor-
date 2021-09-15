@@ -125,7 +125,11 @@ const list = [
         text: "hello how are you"
     },
 ]
+// const user = firebase.auth().currentUser;
 
+// if (!user) {
+//     console.log('no user found')
+// }
 
 function ChatList(props) {
 
@@ -133,17 +137,15 @@ function ChatList(props) {
 
     const getBookingInformation = () => {
         const db = firebase.firestore();
-        db.collection("bookings").where("pateintEmail", "==", 'devika@doctor.com')
+        db.collection("bookings").where("pateintEmail", "==", "user.email")
             .get()
             .then((querySnapshot) => {
                 let tempArray = []
                 querySnapshot.forEach((doc) => {
                     // doc.data() is never undefined for query doc snapshots
                     tempArray.push(doc.data())
-                    console.log(doc.data())
                 });
                 setbookings(tempArray)
-                console.log('hello')
             })
             .catch((error) => {
                 console.log("Error getting documents: ", error);
@@ -157,8 +159,8 @@ function ChatList(props) {
             <ListItem bottomDivider>
                 <Avatar source={{ uri: item.avatar_url }} />
                 <ListItem.Content>
-                    <ListItem.Title>{item.name}</ListItem.Title>
-                    <ListItem.Subtitle>{item.subtitle}</ListItem.Subtitle>
+                    <ListItem.Title>{item.doctorName}</ListItem.Title>
+                    <ListItem.Subtitle>{item.email}</ListItem.Subtitle>
                 </ListItem.Content>
             </ListItem>
         </TouchableOpacity>
@@ -172,7 +174,7 @@ function ChatList(props) {
         <View>
             {
                 <FlatList
-                    data={list}
+                    data={bookings}
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                 />

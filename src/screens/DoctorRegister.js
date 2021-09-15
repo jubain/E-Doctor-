@@ -86,7 +86,8 @@ function DoctorRegister(props) {
                     .then(userCredential => {
                         const user = firebase.auth().currentUser;
                         user.updateProfile({
-                            displayName: inputs.fname
+                            displayName: inputs.fname,
+                            providerId: 'patient'
                         }).then(() => {
                             console.log('update succesfull')
                             const db = firebase.firestore();

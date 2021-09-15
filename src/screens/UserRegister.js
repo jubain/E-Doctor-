@@ -180,7 +180,8 @@ function UserRegistration(props) {
                                     .then(userCredential => {
                                         const user = firebase.auth().currentUser;
                                         user.updateProfile({
-                                            displayName: inputs.fname
+                                            displayName: inputs.fname,
+                                            providerId: 'patient'
                                         }).then(() => {
                                             console.log('update succesfull')
                                             const db = firebase.firestore();
@@ -191,8 +192,8 @@ function UserRegistration(props) {
                                                     fName: inputs.fname,
                                                     mName: inputs.mname,
                                                     lName: inputs.lname,
-                                                    bookings: []
-
+                                                    bookings: [],
+                                                    medicalHistory: []
                                                 });
                                             props.navigation.navigate('Dashboard', { user: user })
                                         })
