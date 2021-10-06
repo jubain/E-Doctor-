@@ -127,7 +127,7 @@ function BookAppointments(props) {
             }}
                 style={item.id === hospitalSelected.id ? { backgroundColor: 'grey' } : null}
             >
-                <View>
+                <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <Avatar
                         rounded
                         source={{
@@ -135,46 +135,35 @@ function BookAppointments(props) {
                         }}
                         size='large'
                     />
-                    <Text style={{ color: 'white' }}>{item.data.name}</Text>
+                    <Text style={{ color: 'white', overflow: 'hidden', fontWeight: 'bold' }}>{item.data.name}     </Text>
                 </View>
             </TouchableOpacity>
         )
     }
 
-
-
-    // const getDoctors = () => {
-    //     db.collection("doctors").where("hospital", "==", userChoosedHospital)
-    //         .get()
-    //         .then((querySnapshot) => {
-    //             let tempArray = []
-    //             querySnapshot.forEach((doc) => {
-    //                 // doc.data() is never undefined for query doc snapshots
-    //                 tempArray.push(doc.data())
-    //             });
-    //             setdoctorList(tempArray)
-    //         })
-    //         .catch((error) => {
-    //             console.log("Error getting documents: ", error);
-    //         });
-    // }
-
     const findDoctor = () => {
-        db.collection("doctors").where("faculty", "==", userDepartmentPick).where("hospital", "==", userChoosedHospital)
+
+        //db.collection("doctors").where("faculty", "==", userDepartmentPick)
+        if (userlocation === "" || userDepartmentPick === "" || userChoosedHospital === "") {
+            alert("please type location, choose hospital and choose faculty of doctors you want.")
+        }
+        db.collection("doctors").where("hospital", "==", userChoosedHospital.id)
             .get()
             .then((querySnapshot) => {
+                // console.log(querySnapshot)
                 let tempArray = []
                 querySnapshot.forEach((doc) => {
                     // doc.data() is never undefined for query doc snapshots
                     //console.log(doc.data())
-                    tempArray.push(doc.data())
-                    console.log(doc.data())
+                    if (doc.data().faculty === userDepartmentPick) {
+                        tempArray.push(doc.data())
+                    }
                 });
                 setdoctorList(tempArray)
 
             })
             .catch((error) => {
-                console.log("Error getting documents: ", error);
+                console.log(error);
             });
 
     }
@@ -258,7 +247,7 @@ function BookAppointments(props) {
                     <View style={{ width: '90%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Text style={{ fontSize: 15, fontWeight: 'bold' }}>Speciality</Text>
                         <Button
-                            title="Choose"
+                            title={userDepartmentPick === "" ? 'Choose' : userDepartmentPick}
                             onPress={() => {
                                 // if (hospitalList.length !== 0 || hospitalList.length !== undefined) {
                                 //     setpickSpeciality(true)

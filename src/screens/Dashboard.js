@@ -120,7 +120,7 @@ function DashBoard(props) {
             <View style={styles.greeting}>
                 <Text >Hello, </Text>
                 <View style={styles.userAndPill}>
-                    {user.displayName ? <Text h3>{user.displayName}</Text> : null}
+                    {user.displayName ? <Text h3>{user.displayName === null ? null : user.displayName}</Text> : null}
                     <Icon
                         type="font-awesome-5"
                         name="pills"

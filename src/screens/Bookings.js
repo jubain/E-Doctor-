@@ -1,14 +1,11 @@
 import { useTheme } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ListItem, Text, Button, Icon } from 'react-native-elements'
+import firebase from 'firebase';
 
-const bookings = [
-    // { id: '1', time: '2:00', date: '4-7-2021', doctor: 'Dr Devika' },
-    // { id: '2', time: '3:00', date: '02-7-2021', doctor: 'Dr Devika' },
-    // { id: '3', time: '4:00', date: '02-8-2021', doctor: 'Dr Devika' },
-    // { id: '4', time: '1:00', date: '02-9-2021', doctor: 'Dr Devika' }
-]
+const user = firebase.auth().currentUser;
+const db = firebase.firestore();
 
 const date = new Date()
 let newDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`
@@ -17,8 +14,9 @@ const onJoinPress = () => {
     console.log('Opens messaging app')
 }
 
-const renderItem = ({ item }) => {
 
+const renderItem = ({ item }) => {
+    console.log(item)
     return (
         // <TouchableOpacity disabled={item.date === newDate ? false : true} style={{}}>
         //     <ListItem bottomDivider>
@@ -41,27 +39,29 @@ const renderItem = ({ item }) => {
         //         </ListItem.Content>
         //     </ListItem>
         // </TouchableOpacity>
-        <TouchableOpacity disabled={item.date === newDate ? false : true} style={{ marginVertical: 5 }} onPress={onJoinPress}>
-            <ListItem bottomDivider containerStyle={item.date === newDate ?
+        //<TouchableOpacity disabled={item.date === newDate ? false : true} style={{ marginVertical: 5 }} onPress={onJoinPress}>
+        <TouchableOpacity>
+            {/* <ListItem bottomDivider containerStyle={item.date === newDate ?
                 { backgroundColor: "#C84771", borderRadius: 20 }
                 : { backgroundColor: "#dddddd", borderRadius: 20 }
-            }>
-                <ListItem.Content style={{}}>
+            }> */}
+            <ListItem>
+                <ListItem.Content>
                     <View style={{ height: 50, width: '10%', backgroundColor: '#94d0cc', margin: 0, borderRadius: 10 }}>
                     </View>
                 </ListItem.Content>
                 <ListItem.Content>
-                    <ListItem.Title style={{ fontSize: 15, color: 'white' }}>{item.time}</ListItem.Title>
-                    <ListItem.Subtitle style={{ fontSize: 12, color: 'white' }}>{item.date}</ListItem.Subtitle>
+                    <ListItem.Title style={{ fontSize: 15, color: 'black' }}>{item.doctorEmail}</ListItem.Title>
+                    <ListItem.Subtitle style={{ fontSize: 12, color: 'black' }}>{item.doctorName}</ListItem.Subtitle>
                 </ListItem.Content>
                 <ListItem.Content>
-                    <ListItem.Title style={{ fontSize: 13, color: 'white' }}>      {item.doctor}</ListItem.Title>
+                    <ListItem.Title style={{ fontSize: 13, color: 'black' }}>      {item.doctorName}</ListItem.Title>
                 </ListItem.Content>
-                <ListItem.Content>
+                {/* <ListItem.Content>
                     <ListItem.Title style={{ fontSize: 14, color: 'white' }}>{
                         item.date === newDate ? "          Join" : null
                     }</ListItem.Title>
-                </ListItem.Content>
+                </ListItem.Content> */}
                 <ListItem.Chevron />
             </ListItem>
         </TouchableOpacity>
@@ -70,8 +70,30 @@ const renderItem = ({ item }) => {
 
 function Bookings(props) {
     const [canBook, setcanBook] = useState(false)
+    const [bookings, setbookings] = useState()
 
     const { colors } = useTheme()
+
+    const getBookings = () => {
+        var tempArray = []
+        db.collection('bookings').where("pateintEmail", "==", user.email).get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    // doc.data() is never undefined for query doc snapshots
+                    // console.log(doc.id, " => ", doc.data());
+
+                    tempArray.push(doc.data())
+                });
+                setbookings(tempArray)
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+    }
+
+    useEffect(() => {
+        getBookings()
+    }, [])
 
     return (
         <View style={{ display: 'flex', alignItems: 'center', backgroundColor: colors.primary, height: '100%' }}>
@@ -85,7 +107,7 @@ function Bookings(props) {
                         <FlatList
                             data={bookings}
                             renderItem={renderItem}
-                            keyExtractor={item => item.id}
+                            keyExtractor={item => item.pateintEmail}
                             setBook={setcanBook}
                         />
                         <View style={styles.bookButton}>

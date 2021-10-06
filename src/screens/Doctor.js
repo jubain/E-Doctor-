@@ -35,10 +35,10 @@ function Doctor(props) {
                 patientName: displayName,
                 pateintEmail: email,
                 doctorName: doctor.fName,
-                doctorEmail: doctor.email
+                doctorEmail: doctor.email,
             })
                 .then((docRef) => {
-                    console.log("Document written with ID: ", docRef.id);
+                    alert('Booking complete. Now you can see your bookings from the dashboard.')
                     setbookButtonTitle('Booked')
                 })
                 .catch((error) => {

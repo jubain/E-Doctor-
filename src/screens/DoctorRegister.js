@@ -87,7 +87,7 @@ function DoctorRegister(props) {
                         const user = firebase.auth().currentUser;
                         user.updateProfile({
                             displayName: inputs.fname,
-                            providerId: 'patient'
+                            providerId: 'doctor'
                         }).then(() => {
                             console.log('update succesfull')
                             const db = firebase.firestore();
@@ -105,6 +105,9 @@ function DoctorRegister(props) {
                                     hospital: inputs.hospital,
                                     bookings: []
                                 });
+                            db.collection("hospitals").doc(inputs.hospital).update({
+                                doctors: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                            })
                             props.navigation.navigate('Dashboard', { user: user })
                         })
                     })
