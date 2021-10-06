@@ -182,7 +182,9 @@ function DashBoard(props) {
             </View>
             <View style={styles.buttonsContainer}>
                 <View style={styles.buttons1}>
-                    <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("Bookings")}>
+                    <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("Bookings", {
+                        userEmail: user.email
+                    })}>
                         <Icon
                             type="ant-design"
                             name="book"

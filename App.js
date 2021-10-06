@@ -117,7 +117,7 @@ export default function App(props) {
             <Button
               title="Back"
               type="clear"
-              onPress={() => navigate("Bookings")}
+              onPress={() => navigate("Dashboard")}
             />
           ),
         }} />
@@ -147,12 +147,12 @@ export default function App(props) {
 
         <Stack.Screen name="Chat" component={Chat}
           options={({ route }) => ({
-            title: route.params.item.doctorName,
+            title: route.params.doctor,
             headerLeft: () => (
               <Button
                 title="Back"
                 type="clear"
-                onPress={() => navigate("ChatList")}
+                onPress={() => navigate("Dashboard")}
               />
             ),
             headerRight: () => (

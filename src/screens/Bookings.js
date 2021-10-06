@@ -14,65 +14,66 @@ const onJoinPress = () => {
     console.log('Opens messaging app')
 }
 
-
-const renderItem = ({ item }) => {
-    console.log(item)
-    return (
-        // <TouchableOpacity disabled={item.date === newDate ? false : true} style={{}}>
-        //     <ListItem bottomDivider>
-        //         <ListItem.Content>
-        //             <ListItem.Title>{item.time}</ListItem.Title>
-        //         </ListItem.Content>
-        //         <ListItem.Content>
-        //             <ListItem.Title>{item.date}</ListItem.Title>
-        //         </ListItem.Content>
-        //         <ListItem.Content>
-        //             <ListItem.Title>{item.doctor}</ListItem.Title>
-        //         </ListItem.Content>
-        //         <ListItem.Content>
-        //             <ListItem.Subtitle>
-        //                 <Icon
-        //                     name='chevron-right'
-        //                     type='font-awesome'
-        //                 />
-        //             </ListItem.Subtitle>
-        //         </ListItem.Content>
-        //     </ListItem>
-        // </TouchableOpacity>
-        //<TouchableOpacity disabled={item.date === newDate ? false : true} style={{ marginVertical: 5 }} onPress={onJoinPress}>
-        <TouchableOpacity>
-            {/* <ListItem bottomDivider containerStyle={item.date === newDate ?
-                { backgroundColor: "#C84771", borderRadius: 20 }
-                : { backgroundColor: "#dddddd", borderRadius: 20 }
-            }> */}
-            <ListItem>
-                <ListItem.Content>
-                    <View style={{ height: 50, width: '10%', backgroundColor: '#94d0cc', margin: 0, borderRadius: 10 }}>
-                    </View>
-                </ListItem.Content>
-                <ListItem.Content>
-                    <ListItem.Title style={{ fontSize: 15, color: 'black' }}>{item.doctorEmail}</ListItem.Title>
-                    <ListItem.Subtitle style={{ fontSize: 12, color: 'black' }}>{item.doctorName}</ListItem.Subtitle>
-                </ListItem.Content>
-                <ListItem.Content>
-                    <ListItem.Title style={{ fontSize: 13, color: 'black' }}>      {item.doctorName}</ListItem.Title>
-                </ListItem.Content>
-                {/* <ListItem.Content>
-                    <ListItem.Title style={{ fontSize: 14, color: 'white' }}>{
-                        item.date === newDate ? "          Join" : null
-                    }</ListItem.Title>
-                </ListItem.Content> */}
-                <ListItem.Chevron />
-            </ListItem>
-        </TouchableOpacity>
-    )
-}
-
 function Bookings(props) {
     const [canBook, setcanBook] = useState(false)
     const [bookings, setbookings] = useState()
 
     const { colors } = useTheme()
+
+    const renderItem = ({ item }) => {
+        return (
+            // <TouchableOpacity disabled={item.date === newDate ? false : true} style={{}}>
+            //     <ListItem bottomDivider>
+            //         <ListItem.Content>
+            //             <ListItem.Title>{item.time}</ListItem.Title>
+            //         </ListItem.Content>
+            //         <ListItem.Content>
+            //             <ListItem.Title>{item.date}</ListItem.Title>
+            //         </ListItem.Content>
+            //         <ListItem.Content>
+            //             <ListItem.Title>{item.doctor}</ListItem.Title>
+            //         </ListItem.Content>
+            //         <ListItem.Content>
+            //             <ListItem.Subtitle>
+            //                 <Icon
+            //                     name='chevron-right'
+            //                     type='font-awesome'
+            //                 />
+            //             </ListItem.Subtitle>
+            //         </ListItem.Content>
+            //     </ListItem>
+            // </TouchableOpacity>
+            //<TouchableOpacity disabled={item.date === newDate ? false : true} style={{ marginVertical: 5 }} onPress={onJoinPress}>
+            <TouchableOpacity onPress={() => props.navigation.navigate('Chat', {
+                pateintEmail: props.route.params.userEmail,
+                doctor: item.doctorName
+            })}>
+                {/* <ListItem bottomDivider containerStyle={item.date === newDate ?
+                    { backgroundColor: "#C84771", borderRadius: 20 }
+                    : { backgroundColor: "#dddddd", borderRadius: 20 }
+                }> */}
+                <ListItem>
+                    <ListItem.Content>
+                        <View style={{ height: 50, width: '10%', backgroundColor: '#94d0cc', margin: 0, borderRadius: 10 }}>
+                        </View>
+                    </ListItem.Content>
+                    <ListItem.Content>
+                        <ListItem.Title style={{ fontSize: 15, color: 'black' }}>{item.doctorEmail}</ListItem.Title>
+                        <ListItem.Subtitle style={{ fontSize: 12, color: 'black' }}>{item.doctorName}</ListItem.Subtitle>
+                    </ListItem.Content>
+                    <ListItem.Content>
+                        <ListItem.Title style={{ fontSize: 13, color: 'black' }}>      {item.doctorName}</ListItem.Title>
+                    </ListItem.Content>
+                    {/* <ListItem.Content>
+                        <ListItem.Title style={{ fontSize: 14, color: 'white' }}>{
+                            item.date === newDate ? "          Join" : null
+                        }</ListItem.Title>
+                    </ListItem.Content> */}
+                    <ListItem.Chevron />
+                </ListItem>
+            </TouchableOpacity>
+        )
+    }
 
     const getBookings = () => {
         var tempArray = []
