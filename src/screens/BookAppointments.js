@@ -14,60 +14,8 @@ function BookAppointments(props) {
     const [hospitalList, sethospitalList] = useState()
     const [doctorList, setdoctorList] = useState()
     const [userChoosedHospital, setuserChoosedHospital] = useState("")
+    const [hospitalSelected, sethospitalSelected] = useState({ id: '' })
 
-    const doctors = [
-        {
-            id: '1',
-            name: "Devika",
-            department: 'Dentist',
-            history: [
-                { id: '1', name: 'MBBS' },
-                { id: '2', name: 'MD' },
-                { id: '3', name: 'PHD' },
-            ],
-            awards: [
-                { id: '1', name: 'MBBS' },
-                { id: '2', name: 'MD' },
-                { id: '3', name: 'PHD' },
-            ],
-            reviews: [
-                { id: '1', name: 'MBBS' },
-                { id: '2', name: 'MD' },
-                { id: '3', name: 'PHD' },
-            ]
-        },
-        {
-            id: '2',
-            name: "Monica",
-            department: 'Dentist'
-        },
-        {
-            id: '3',
-            name: "Puccu",
-            department: 'Orthopedic'
-        },
-        {
-            id: '4',
-            name: "Babe",
-            department: 'Pediatric'
-        },
-        {
-            id: '5',
-            name: "Monica",
-            department: 'Dentist'
-        },
-        {
-            id: '6',
-            name: "Monica",
-            department: 'Dentist'
-        },
-        {
-            id: '7',
-            name: "Monica",
-            department: 'Dentist'
-        },
-
-    ]
     const db = firebase.firestore()
 
     const findHospitals = () => {
@@ -77,7 +25,8 @@ function BookAppointments(props) {
                 let tempArray = []
                 querySnapshot.forEach((doc) => {
                     // doc.data() is never undefined for query doc snapshots
-                    tempArray.push(doc.data().name)
+                    var obj = { data: doc.data(), id: doc.id }
+                    tempArray.push(obj)
                 });
                 sethospitalList(tempArray)
             })
@@ -174,8 +123,10 @@ function BookAppointments(props) {
         return (
             <TouchableOpacity onPress={() => {
                 setuserChoosedHospital(item);
-                getDoctors()
-            }}>
+                sethospitalSelected({ id: item.id })
+            }}
+                style={item.id === hospitalSelected.id ? { backgroundColor: 'grey' } : null}
+            >
                 <View>
                     <Avatar
                         rounded
@@ -184,27 +135,29 @@ function BookAppointments(props) {
                         }}
                         size='large'
                     />
-                    <Text style={{ color: 'white' }}>{item}</Text>
+                    <Text style={{ color: 'white' }}>{item.data.name}</Text>
                 </View>
             </TouchableOpacity>
         )
     }
 
-    const getDoctors = () => {
-        db.collection("doctors").where("hospital", "==", userChoosedHospital)
-            .get()
-            .then((querySnapshot) => {
-                let tempArray = []
-                querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    tempArray.push(doc.data())
-                });
-                setdoctorList(tempArray)
-            })
-            .catch((error) => {
-                console.log("Error getting documents: ", error);
-            });
-    }
+
+
+    // const getDoctors = () => {
+    //     db.collection("doctors").where("hospital", "==", userChoosedHospital)
+    //         .get()
+    //         .then((querySnapshot) => {
+    //             let tempArray = []
+    //             querySnapshot.forEach((doc) => {
+    //                 // doc.data() is never undefined for query doc snapshots
+    //                 tempArray.push(doc.data())
+    //             });
+    //             setdoctorList(tempArray)
+    //         })
+    //         .catch((error) => {
+    //             console.log("Error getting documents: ", error);
+    //         });
+    // }
 
     const findDoctor = () => {
         db.collection("doctors").where("faculty", "==", userDepartmentPick).where("hospital", "==", userChoosedHospital)
@@ -215,8 +168,10 @@ function BookAppointments(props) {
                     // doc.data() is never undefined for query doc snapshots
                     //console.log(doc.data())
                     tempArray.push(doc.data())
+                    console.log(doc.data())
                 });
                 setdoctorList(tempArray)
+
             })
             .catch((error) => {
                 console.log("Error getting documents: ", error);
@@ -276,11 +231,10 @@ function BookAppointments(props) {
                                 value={userlocation}
                                 onChangeText={text => setlocation(text)}
                                 style={{ fontSize: 12 }}
+                                onSubmitEditing={findHospitals()}
                                 inputContainerStyle={{ borderWidth: 1, borderRadius: 10, borderColor: 'white', backgroundColor: 'white' }}
                             />
-                            <Button title="Search" onPress={() => {
-                                findHospitals()
-                            }} />
+
                         </View>
 
                         {/* <View style={{ width: '80%' }}>
@@ -306,26 +260,35 @@ function BookAppointments(props) {
                         <Button
                             title="Choose"
                             onPress={() => {
-                                if (hospitalList.length !== 0) {
-                                    setpickSpeciality(true)
-                                    setModalVisible(true)
-                                } else {
-                                    alert('Please enter a location of a hospital')
-                                }
+                                // if (hospitalList.length !== 0 || hospitalList.length !== undefined) {
+                                //     setpickSpeciality(true)
+                                //     setModalVisible(true)
+                                // } else {
+                                //     alert('Please enter a location of a hospital')
+                                // }
+                                setpickSpeciality(true)
+                                setModalVisible(true)
 
                             }}
                             buttonStyle={{ width: '100%' }}
                             type="clear"
                         />
+
                     </View>
 
                     {/* Hospital flatlist */}
                     <View style={{ marginTop: '10%', width: '90%' }}>
                         <Text style={{ fontSize: 15, fontWeight: 'bold' }}>Choose any Hospital</Text>
+                        {/* {hospitalList !== undefined ?
+                            hospitalList.length === 0 ? null :
+
+                                
+                            : null
+                        } */}
                         <FlatList
                             data={hospitalList}
                             renderItem={renderHospitals}
-                            keyExtractor={item => item}
+                            keyExtractor={item => item.id}
                             horizontal
                             style={{
                                 backgroundColor: '#C84771',
@@ -341,7 +304,12 @@ function BookAppointments(props) {
                                 elevation: 22,
                             }}
                         />
+
                     </View>
+                    <View style={{ width: '90%', marginTop: 10 }}>
+                        <Button titleStyle={{ fontSize: 25 }} buttonStyle={styles.searchButton} containerStyle={styles.searchButtonContainer} title="Search" onPress={findDoctor} />
+                    </View>
+
 
                 </View>
             )}>
@@ -368,7 +336,7 @@ function BookAppointments(props) {
                                         <TouchableOpacity style={styles.button} onPress={() => {
                                             setuserDepartmentPick("Dentist")
                                             setModalVisible(false)
-                                            findDoctor()
+
                                         }}>
                                             <Icon
                                                 type="font-awesome-5"
@@ -382,7 +350,7 @@ function BookAppointments(props) {
                                         <TouchableOpacity style={styles.button} onPress={() => {
                                             setuserDepartmentPick("Pediatric")
                                             setModalVisible(false)
-                                            findDoctor()
+
                                         }}>
                                             <Icon
                                                 type="font-awesome-5"
@@ -396,7 +364,7 @@ function BookAppointments(props) {
                                         <TouchableOpacity style={styles.button} onPress={() => {
                                             setuserDepartmentPick("Orthopedic")
                                             setModalVisible(false)
-                                            findDoctor()
+
                                         }}>
                                             <Icon
                                                 type="font-awesome-5"
@@ -634,10 +602,15 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 900
     },
-    button: {
-        borderColor: 'blue',
-        width: '30%'
+    searchButton: {
+        width: '100%',
+        height: "100%",
+        backgroundColor: '#C84771',
+        borderRadius: 15
     },
+    searchButtonContainer: {
+        height: '35%'
+    }
 })
 
 export default BookAppointments;
