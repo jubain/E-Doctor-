@@ -14,10 +14,13 @@ const onJoinPress = () => {
     console.log('Opens messaging app')
 }
 
+
+
+var bookingId // To get chat of same booking Id
+
 function Bookings(props) {
     const [canBook, setcanBook] = useState(false)
     const [bookings, setbookings] = useState()
-
     const { colors } = useTheme()
 
     const renderItem = ({ item }) => {
@@ -45,8 +48,10 @@ function Bookings(props) {
             // </TouchableOpacity>
             //<TouchableOpacity disabled={item.date === newDate ? false : true} style={{ marginVertical: 5 }} onPress={onJoinPress}>
             <TouchableOpacity onPress={() => props.navigation.navigate('Chat', {
-                pateintEmail: props.route.params.userEmail,
-                doctor: item.doctorName
+                //bookingId: bookingId,
+                patientEmail: props.route.params.userEmail,
+                doctor: item.doctorName,
+                user: props.route.params.userData
             })}>
                 {/* <ListItem bottomDivider containerStyle={item.date === newDate ?
                     { backgroundColor: "#C84771", borderRadius: 20 }
@@ -77,12 +82,12 @@ function Bookings(props) {
 
     const getBookings = () => {
         var tempArray = []
-        db.collection('bookings').where("pateintEmail", "==", user.email).get()
+        db.collection('bookings').where("pateintEmail", "==", props.route.params.userEmail).get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
                     // doc.data() is never undefined for query doc snapshots
                     // console.log(doc.id, " => ", doc.data());
-
+                    console.log(doc.id)
                     tempArray.push(doc.data())
                 });
                 setbookings(tempArray)

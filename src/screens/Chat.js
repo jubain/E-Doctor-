@@ -6,22 +6,7 @@ import moment from 'moment';
 import { TextInput } from 'react-native';
 import firebase from 'firebase';
 
-const renderItem = ({ item }) => (
-    <View style={styles.container}>
-        <View style={[
-            styles.messageBox,
-            {
-                backgroundColor: item.userId === 'Jubeen' ? '#C84771' : '#BEBDB8',
-                marginLeft: item.userId === 'Jubeen' ? 50 : 0,
-                marginRight: item.userId === 'Jubeen' ? 0 : 50
-            }
-        ]}>
-            {item.userId !== 'Jubeen' && <Text style={styles.name}>{item.userId}</Text>}
-            <Text style={styles.message}>{item.message}</Text>
-            {/* {item.userId !== 'Jubeen' && <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>} */}
-        </View>
-    </View>
-)
+
 
 // const renderItem = ({ item }) => {
 //     return (
@@ -49,9 +34,9 @@ function Chat(props) {
     const [message, setmessage] = useState("")
     const [chats, setchats] = useState()
     var doctor = props.route.params.doctor
-    var patient = props.route.params.pateintEmail
+    var patient = props.route.params.patientEmail
+    var user = props.route.params.user
     const [messageAndChat, setmessageAndChat] = useState()
-
     const db = firebase.firestore()
 
     const sendMessage = () => {
@@ -78,22 +63,49 @@ function Chat(props) {
 
     }
 
+    const renderItem = ({ item }) => (
+        <View style={styles.container}>
+            {console.log(item)}
+            <View style={[
+                styles.messageBox,
+                {
+                    backgroundColor: item.userId !== user.email ? '#C84771' : '#BEBDB8',
+                    marginLeft: item.userId !== user.email ? 50 : 0,
+                    marginRight: item.userId !== user.email ? 0 : 50
+                }
+            ]}>
+                {item.userId !== 'Jubeen' && <Text style={styles.name}>{item.userId}</Text>}
+                <Text style={styles.message}>{item.message}</Text>
+                {/* {item.userId !== 'Jubeen' && <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>} */}
+            </View>
+        </View>
+    )
+
 
     const sendChat = () => {
-
-        db.collection('chats')
-            .doc('ViNAI6NyxKQj5wLZDcSo').update({
-                "contents": firebase.firestore.FieldValue.arrayUnion({
-                    id: `${Math.random()}`,
-                    message: message,
-                    userId: 'Devika'
-                })
-            }).then(() => {
-                console.log('all good')
-                setmessage('')
-            }).catch(err => {
-                console.log(err)
+        var documentId
+        db.collection('chats').where('patientEmail', '==', patient).get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    documentId = doc.id
+                });
+                db.collection('chats').doc(`${documentId}`)
+                    .update({
+                        "contents": firebase.firestore.FieldValue.arrayUnion({
+                            id: `${Math.random()}`,
+                            message: message,
+                            userId: props.route.params.patientEmail
+                        })
+                    }).then(() => {
+                        console.log('all good')
+                        setmessage('')
+                    }).catch(err => {
+                        console.log(err)
+                    })
             })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
     }
 
     const getMessage = () => {
@@ -118,17 +130,36 @@ function Chat(props) {
     }
 
     useEffect(() => {
-        db.collection('bookings').where("pateintEmail", "==", patient).get().then((querySnapshot) => {
-            let tempArray = []
-            querySnapshot.forEach((doc) => {
-                if (doc.data().doctorName === doctor)
-                    doc.get()
-            });
-        })
+        // db.collection('chats').where("pateintEmail", "==", patient).get().then((querySnapshot) => {
+        //     let tempArray = []
+        //     querySnapshot.forEach((doc) => {
+        //         if (doc.data().doctorName === doctor)
+        //             doc.get()
+        //     });
+        // })
+        //     .catch((error) => {
+        //         console.log("Error getting documents: ", error);
+        //     });
+
+        db.collection("chats").where("patientEmail", "==", patient)
+            .get()
+            .then((querySnapshot) => {
+                let tempArray = []
+                querySnapshot.forEach((doc) => {
+                    // doc.data() is never undefined for query doc snapshots
+
+                    doc.data().contents.forEach(data => {
+                        tempArray.push(data)
+                    })
+                });
+                setmessageAndChat(tempArray.reverse())
+            })
             .catch((error) => {
                 console.log("Error getting documents: ", error);
             });
-        // .doc('ViNAI6NyxKQj5wLZDcSo').get()
+
+
+        // db.collection('chats').where("pateintEmail", "==", patient).get()
         //     .then((doc) => {
         //         let tempArray = []
         //         doc.data().contents.forEach(data => {

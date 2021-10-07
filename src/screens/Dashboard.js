@@ -27,6 +27,7 @@ const hospitals = [
 function DashBoard(props) {
     const { colors } = useTheme()
     const user = firebase.auth().currentUser;
+
     const [userHospital, setUserHospital] = useState("")
 
     const [searchBarClick, setsearchBarClick] = useState("false")
@@ -183,7 +184,8 @@ function DashBoard(props) {
             <View style={styles.buttonsContainer}>
                 <View style={styles.buttons1}>
                     <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("Bookings", {
-                        userEmail: user.email
+                        userEmail: user.email,
+                        userData: user
                     })}>
                         <Icon
                             type="ant-design"
