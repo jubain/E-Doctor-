@@ -26,7 +26,7 @@ const hospitals = [
 
 function DashBoard(props) {
     const { colors } = useTheme()
-    const user = firebase.auth().currentUser;
+    const user = props.route.params.user
 
     const [userHospital, setUserHospital] = useState("")
 
@@ -101,7 +101,7 @@ function DashBoard(props) {
                     <View style={styles.settings}>
                         <Icon name="sign-out" type="font-awesome" onPress={() => {
                             firebase.auth().signOut().then(() => {
-                                props.navigation.navigate('Login')
+                                //props.navigation.navigate('Login')
                             }).catch(error => {
                                 console.log(error)
                             })
@@ -185,7 +185,7 @@ function DashBoard(props) {
                 <View style={styles.buttons1}>
                     <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("Bookings", {
                         userEmail: user.email,
-                        userData: user
+                        user: user
                     })}>
                         <Icon
                             type="ant-design"

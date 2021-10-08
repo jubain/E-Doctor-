@@ -18,7 +18,6 @@ function Login(props) {
             firebase.auth().signInWithEmailAndPassword(inputs.email, inputs.password)
                 .then((userCredential) => {
                     // Signed in
-                    console.log('from login', userCredential)
                     //var user = userCredential.user;
                     props.navigation.navigate('Loading')
                     // ...

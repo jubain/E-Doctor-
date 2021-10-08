@@ -4,7 +4,6 @@ import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ListItem, Text, Button, Icon } from 'react-native-elements'
 import firebase from 'firebase';
 
-const user = firebase.auth().currentUser;
 const db = firebase.firestore();
 
 const date = new Date()
@@ -22,6 +21,7 @@ function Bookings(props) {
     const [canBook, setcanBook] = useState(false)
     const [bookings, setbookings] = useState()
     const { colors } = useTheme()
+    const user = props.route.params.user
 
     const renderItem = ({ item }) => {
         return (
@@ -47,28 +47,33 @@ function Bookings(props) {
             //     </ListItem>
             // </TouchableOpacity>
             //<TouchableOpacity disabled={item.date === newDate ? false : true} style={{ marginVertical: 5 }} onPress={onJoinPress}>
+
             <TouchableOpacity onPress={() => props.navigation.navigate('Chat', {
                 bookingId: bookingId,
                 userEmail: props.route.params.userEmail,
                 doctor: item.doctorName,
                 doctorEmail: item.doctorEmail,
-                user: props.route.params.userData
+                patientName: item.patientName,
+                patientEmail: item.pateintEmail,
+                user: user
             })}>
+
                 {/* <ListItem bottomDivider containerStyle={item.date === newDate ?
                     { backgroundColor: "#C84771", borderRadius: 20 }
                     : { backgroundColor: "#dddddd", borderRadius: 20 }
                 }> */}
                 <ListItem>
+                    {console.log(item)}
                     <ListItem.Content>
                         <View style={{ height: 50, width: '10%', backgroundColor: '#94d0cc', margin: 0, borderRadius: 10 }}>
                         </View>
                     </ListItem.Content>
                     <ListItem.Content>
-                        <ListItem.Title style={{ fontSize: 15, color: 'black' }}>{item.doctorEmail}</ListItem.Title>
-                        <ListItem.Subtitle style={{ fontSize: 12, color: 'black' }}>{item.doctorName}</ListItem.Subtitle>
+                        <ListItem.Title style={{ fontSize: 15, color: 'black' }}>{item.time}</ListItem.Title>
+                        <ListItem.Subtitle style={{ fontSize: 12, color: 'black' }}>{item.date}</ListItem.Subtitle>
                     </ListItem.Content>
                     <ListItem.Content>
-                        <ListItem.Title style={{ fontSize: 13, color: 'black' }}>      {item.doctorName}</ListItem.Title>
+                        <ListItem.Title style={{ fontSize: 13, color: 'black', fontWeight: 'bold' }}>    {user.photoURL === "doctor" ? item.patientName : item.doctorName}</ListItem.Title>
                     </ListItem.Content>
                     {/* <ListItem.Content>
                         <ListItem.Title style={{ fontSize: 14, color: 'white' }}>{
@@ -83,7 +88,8 @@ function Bookings(props) {
 
     const getBookings = () => {
         var tempArray = []
-        db.collection('bookings').where("pateintEmail", "==", props.route.params.userEmail).get()
+        console.log(user.email)
+        db.collection('bookings').where(user.photoURL === "patient" ? "pateintEmail" : "doctorEmail", "==", user.email).get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
                     // doc.data() is never undefined for query doc snapshots
@@ -96,6 +102,8 @@ function Bookings(props) {
             .catch((error) => {
                 console.log("Error getting documents: ", error);
             });
+
+
     }
 
     useEffect(() => {

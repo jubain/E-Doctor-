@@ -147,7 +147,7 @@ export default function App(props) {
 
         <Stack.Screen name="Chat" component={Chat}
           options={({ route }) => ({
-            title: route.params.doctor,
+            title: route.params.user.photoURL === "doctor" ? "Patient" : route.params.doctor,
             headerLeft: () => (
               <Button
                 title="Back"
