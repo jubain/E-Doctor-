@@ -6,8 +6,6 @@ import { Input, Text, Button, Icon, ListItem, Avatar } from 'react-native-elemen
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ParallaxScrollView from 'react-native-parallax-scroll-view';
 import firebase from 'firebase';
-import { ActivityIndicator } from 'react-native';
-
 
 function BookAppointments(props) {
 
@@ -15,8 +13,10 @@ function BookAppointments(props) {
     const [doctorList, setdoctorList] = useState()
     const [userChoosedHospital, setuserChoosedHospital] = useState("")
     const [hospitalSelected, sethospitalSelected] = useState({ id: '' })
+    const [userlocation, setlocation] = useState("")
 
     const db = firebase.firestore()
+    const user = props.route.params.user
 
     const findHospitals = () => {
         db.collection("hospitals").where("location", "==", userlocation)
@@ -37,40 +37,34 @@ function BookAppointments(props) {
     }
 
 
-
-    const [userlocation, setlocation] = useState("")
-
     // Date picker
-    const [buttonColour, setbuttonColour] = useState("#C84771")
 
-    const [date, setDate] = useState(new Date(1598051730000));
+    const [date, setDate] = useState(new Date());
+
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(true);
+    const dateString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate()
+    const [userPickedTime, setuserPickedTime] = useState("")
 
     const onChange = (event, selectedDate) => {
-        setbuttonColour('#dddddd')
         const currentDate = selectedDate || date;
+        var selectedTime = `${selectedDate}`
         setShow(Platform.OS === 'ios');
-        setDate(currentDate);
+        setDate(selectedDate);
+        setuserPickedTime(selectedTime.slice(4, 21))
+        console.log(selectedDate)
     };
 
     const showMode = (currentMode) => {
         setShow(true);
         setMode(currentMode);
     };
-    const showTimepicker = () => {
-        showMode('time');
-    };
-
 
     const showDatepicker = () => {
         showMode('date');
     };
 
     // Date picker ends
-
-    // Buttons
-    const [pickPressed, setpickPressed] = useState(false)
 
     const [pickSpeciality, setpickSpeciality] = useState(false)
     // End Buttons
@@ -91,7 +85,10 @@ function BookAppointments(props) {
 
     const doctorDetail = (item) => {
         props.navigation.navigate('Doctor', {
-            item: item
+            item: item,
+            date: date,
+            time: userPickedTime,
+            user: user
         })
     }
 
@@ -147,7 +144,8 @@ function BookAppointments(props) {
         if (userlocation === "" || userDepartmentPick === "" || userChoosedHospital === "") {
             alert("please type location, choose hospital and choose faculty of doctors you want.")
         }
-        db.collection("doctors").where("hospital", "==", userChoosedHospital.id)
+
+        db.collection("doctors").where("hospital", "==", userChoosedHospital.data.name)
             .get()
             .then((querySnapshot) => {
                 // console.log(querySnapshot)
@@ -186,7 +184,7 @@ function BookAppointments(props) {
                                 testID="dateTimePicker"
                                 value={date}
                                 mode="date"
-                                is24Hour={true}
+                                is24Hour={false}
                                 display="default"
                                 onChange={onChange}
                                 style={{ width: '37%' }}
@@ -203,8 +201,8 @@ function BookAppointments(props) {
                             <DateTimePicker
                                 testID="dateTimePicker"
                                 value={date}
-                                mode="time"
-                                is24Hour={true}
+                                mode='time'
+                                is24Hour={false}
                                 display="inline"
                                 onChange={onChange}
                                 style={{ width: '58%', backgroundColor: "white" }}

@@ -85,6 +85,7 @@ function Chat(props) {
     const sendChat = () => {
         if (message !== "") {
             var documentId
+            console.log(patient)
             db.collection('chats').where('patientEmail', '==', patient).get()
                 .then((querySnapshot) => {
                     querySnapshot.forEach((doc) => {
@@ -197,19 +198,22 @@ function Chat(props) {
                 onTouchStart={() => { settextFieldTouched(false) }}
             //style={textFieldTouched === true ? { marginBottom: 300 } : null}
             />
+            <View style={textFieldTouched === false ? styles.textAndButtonContainer : styles.textAndButtonContainerAfterKeyboard}>
+                <View style={styles.textContainer}>
+                    <TextInput
+                        value={message}
+                        numberOfLines={6}
+                        multiline style={{ flex: 1 }}
+                        placeholder="Type here..."
+                        onChangeText={setmessage}
+                        onTouchStart={() => { settextFieldTouched(true) }}
+                    //style={textFieldTouched === true ? {} : null}
+                    />
 
-            <View style={styles.textContainer}>
-                <TextInput
-                    value={message}
-                    numberOfLines={6}
-                    multiline style={{ flex: 1 }}
-                    placeholder="Type here..."
-                    onChangeText={setmessage}
-                    onSubmitEditing={sendChat}
-                    onTouchStart={() => { settextFieldTouched(true) }}
-                //style={textFieldTouched === true ? {} : null}
-                />
+                </View>
+                <Button onPress={sendChat} style={styles.sendButton} title="Send"></Button>
             </View>
+
         </ImageBackground>
 
     );
@@ -244,10 +248,29 @@ const styles = StyleSheet.create({
     textContainer: {
         backgroundColor: 'white',
         padding: 10,
-        borderRadius: 50,
+        flex: 1.8,
+        height: '100%',
+        borderRadius: 50
+    },
+    textAndButtonContainer: {
         marginHorizontal: 10,
         marginBottom: 20,
-        height: '6%'
+        height: '6%',
+        display: 'flex',
+        flexDirection: 'row',
+        width: '100%'
+    },
+    textAndButtonContainerAfterKeyboard: {
+        marginHorizontal: 10,
+        marginBottom: 350,
+        height: '6%',
+        display: 'flex',
+        flexDirection: 'row',
+        width: '100%'
+    },
+    sendButton: {
+        flex: 1.5,
+        height: '100%'
     }
 })
 

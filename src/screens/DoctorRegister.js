@@ -87,7 +87,6 @@ function DoctorRegister(props) {
                         const user = firebase.auth().currentUser;
                         user.updateProfile({
                             displayName: inputs.fname,
-                            providerId: 'doctor',
                             photoURL: "doctor"
                         }).then(() => {
                             console.log('update succesfull')

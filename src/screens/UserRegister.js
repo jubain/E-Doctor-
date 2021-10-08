@@ -181,7 +181,7 @@ function UserRegistration(props) {
                                         const user = firebase.auth().currentUser;
                                         user.updateProfile({
                                             displayName: inputs.fname,
-                                            providerId: 'patient'
+                                            photoURL: 'patient'
                                         }).then(() => {
                                             console.log('update succesfull')
                                             const db = firebase.firestore();

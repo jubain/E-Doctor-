@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, useWindowDimensions, Dimensions, FlatList } from 'react-native'
+import React, { useEffect, useState } from 'react';
+import { View, useWindowDimensions, Dimensions, FlatList, Alert } from 'react-native'
 import { Avatar, Text, Button, ListItem } from 'react-native-elements'
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { useTheme } from '@react-navigation/native';
@@ -13,7 +13,10 @@ function Doctor(props) {
     const [bookButtonTitle, setbookButtonTitle] = useState('Book')
     const { colors } = useTheme()
 
-
+    const date = `${props.route.params.date}`
+    const time = `${props.route.params.time}`
+    console.log(date.slice(0, 10))
+    console.log(time.slice(12, 17))
 
     const renderItem = ({ item }) => {
         return (
@@ -31,24 +34,46 @@ function Doctor(props) {
         })
     }
 
+    const checkBookings = () => {
+        // if pre booking found then send back to previous page
+        db.collection('bookings').where('doctorEmail', '==', doctor.email)
+            .get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    if (doc.data().doctorEmail === doctor.email && doc.data().date === date.slice(0, 10) && doc.data().time === time.slice(12, 17)) {
+                        Alert.alert(
+                            "Sorry",
+                            `The doctor is booked for ${time.slice(12, 17)} on ${date.slice(0, 10)}`,
+                            [
+                                { text: "OK", onPress: () => props.navigation.goBack(null) }
+                            ]
+                        )
+                    }
+                });
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+
+    }
+
     const doBooking = () => {
         const user = firebase.auth().currentUser;
         if (user !== null) {
             // The user object has basic properties such as display name, email, etc.
             const displayName = user.displayName;
             const email = user.email;
-            const photoURL = user.photoURL;
-            const emailVerified = user.emailVerified;
-            const uid = user.uid;
 
             db.collection("bookings").add({
                 patientName: displayName,
                 pateintEmail: email,
                 doctorName: doctor.fName,
                 doctorEmail: doctor.email,
+                date: date.slice(0, 10),
+                time: time.slice(12, 17)
             })
                 .then((docRef) => {
-                    createChatBox(doctor.email, 'puccu@gmail.com')
+                    createChatBox(doctor.email, email)
                     alert('Booking complete. Now you can see your bookings from the dashboard.')
                     setbookButtonTitle('Booked')
                 })
@@ -99,6 +124,10 @@ function Doctor(props) {
         reviews: Reviews
     });
     // End Tab View
+
+    useEffect(() => {
+        checkBookings()
+    }, [])
 
     return (
         <View style={{ display: 'flex', alignItems: 'center', height: '100%' }}>

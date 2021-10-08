@@ -119,7 +119,7 @@ function DashBoard(props) {
                 </Overlay>
             </View>
             <View style={styles.greeting}>
-                <Text >Hello, </Text>
+                <Text >Hello,{user.photoURL === "doctor" ? " Dr" : ""}</Text>
                 <View style={styles.userAndPill}>
                     {user.displayName ? <Text h3>{user.displayName === null ? null : user.displayName}</Text> : null}
                     <Icon
@@ -194,15 +194,17 @@ function DashBoard(props) {
                         />
                         <Text style={{ fontSize: 12, color: "white" }}>Bookings</Text>
                     </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("Book")}>
+                    {user.photoURL !== 'doctor' ? <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("Book", {
+                        user: user
+                    })}>
                         <Icon
                             type="fontisto"
                             name="doctor"
                             color='white'
                         />
                         <Text style={{ fontSize: 12, color: "white" }}>Find a Doctor</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> : null}
+
 
                     <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("ChatList")}>
                         <Icon
@@ -210,7 +212,7 @@ function DashBoard(props) {
                             name="hipchat"
                             color='white'
                         />
-                        <Text style={{ fontSize: 12, color: "white" }}>Consult your doctor</Text>
+                        <Text style={{ fontSize: 12, color: "white" }}>{user.photoURL !== 'doctor' ? 'Consult your doctor' : 'Chat History'}</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.buttons2}>
@@ -222,7 +224,7 @@ function DashBoard(props) {
                             name="book-medical"
                             color='white'
                         />
-                        <Text style={{ fontSize: 12, color: "white" }}>Medical History</Text>
+                        <Text style={{ fontSize: 12, color: "white" }}>{user.photoURL !== 'doctor' ? "Profile" : "Patients Medical History"}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.button}>
