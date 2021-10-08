@@ -8,9 +8,11 @@ import firebase from 'firebase';
 
 function Doctor(props) {
     const doctor = props.route.params.item
+    const db = firebase.firestore();
     //props.route.params.item.history
     const [bookButtonTitle, setbookButtonTitle] = useState('Book')
     const { colors } = useTheme()
+
 
 
     const renderItem = ({ item }) => {
@@ -19,6 +21,14 @@ function Doctor(props) {
                 <ListItem.Title>{item.fName}</ListItem.Title>
             </ListItem>
         )
+    }
+
+    const createChatBox = (doctorEmail, patientEmail) => {
+        db.collection('chats').add({
+            contents: [],
+            doctorEmail: doctorEmail,
+            patientEmail: patientEmail
+        })
     }
 
     const doBooking = () => {
@@ -30,7 +40,7 @@ function Doctor(props) {
             const photoURL = user.photoURL;
             const emailVerified = user.emailVerified;
             const uid = user.uid;
-            const db = firebase.firestore();
+
             db.collection("bookings").add({
                 patientName: displayName,
                 pateintEmail: email,
@@ -38,6 +48,7 @@ function Doctor(props) {
                 doctorEmail: doctor.email,
             })
                 .then((docRef) => {
+                    createChatBox(doctor.email, 'puccu@gmail.com')
                     alert('Booking complete. Now you can see your bookings from the dashboard.')
                     setbookButtonTitle('Booked')
                 })

@@ -48,9 +48,10 @@ function Bookings(props) {
             // </TouchableOpacity>
             //<TouchableOpacity disabled={item.date === newDate ? false : true} style={{ marginVertical: 5 }} onPress={onJoinPress}>
             <TouchableOpacity onPress={() => props.navigation.navigate('Chat', {
-                //bookingId: bookingId,
-                patientEmail: props.route.params.userEmail,
+                bookingId: bookingId,
+                userEmail: props.route.params.userEmail,
                 doctor: item.doctorName,
+                doctorEmail: item.doctorEmail,
                 user: props.route.params.userData
             })}>
                 {/* <ListItem bottomDivider containerStyle={item.date === newDate ?

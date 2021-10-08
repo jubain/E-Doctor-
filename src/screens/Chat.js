@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList } from 'react-native';
-import { StyleSheet, View, TouchableOpacity, ImageBackground } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, ImageBackground, KeyboardAvoidingView } from 'react-native'
 import { ListItem, Avatar, Button, Text } from 'react-native-elements'
-import moment from 'moment';
 import { TextInput } from 'react-native';
 import firebase from 'firebase';
 
@@ -33,11 +32,13 @@ import firebase from 'firebase';
 function Chat(props) {
     const [message, setmessage] = useState("")
     const [chats, setchats] = useState()
-    var doctor = props.route.params.doctor
-    var patient = props.route.params.patientEmail
+    var doctor = props.route.params.doctorEmail
+    var patient = props.route.params.userEmail
     var user = props.route.params.user
     const [messageAndChat, setmessageAndChat] = useState()
     const db = firebase.firestore()
+
+    const [textFieldTouched, settextFieldTouched] = useState(false)
 
     const sendMessage = () => {
 
@@ -65,7 +66,6 @@ function Chat(props) {
 
     const renderItem = ({ item }) => (
         <View style={styles.container}>
-            {console.log(item)}
             <View style={[
                 styles.messageBox,
                 {
@@ -83,29 +83,33 @@ function Chat(props) {
 
 
     const sendChat = () => {
-        var documentId
-        db.collection('chats').where('patientEmail', '==', patient).get()
-            .then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    documentId = doc.id
-                });
-                db.collection('chats').doc(`${documentId}`)
-                    .update({
-                        "contents": firebase.firestore.FieldValue.arrayUnion({
-                            id: `${Math.random()}`,
-                            message: message,
-                            userId: props.route.params.patientEmail
+        if (message !== "") {
+            var documentId
+            db.collection('chats').where('patientEmail', '==', patient).get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        documentId = doc.id
+                    });
+                    db.collection('chats').doc(`${documentId}`)
+                        .update({
+                            "contents": firebase.firestore.FieldValue.arrayUnion({
+                                id: `${Math.random()}`,
+                                message: message,
+                                userId: props.route.params.user.email
+                            })
+                        }).then(() => {
+                            setmessage('')
+                        }).catch(err => {
+                            console.log(err)
                         })
-                    }).then(() => {
-                        console.log('all good')
-                        setmessage('')
-                    }).catch(err => {
-                        console.log(err)
-                    })
-            })
-            .catch((error) => {
-                console.log("Error getting documents: ", error);
-            });
+                })
+                .catch((error) => {
+                    console.log("Error getting documents: ", error);
+                });
+        } else {
+            alert("please write a message")
+        }
+
     }
 
     const getMessage = () => {
@@ -147,7 +151,9 @@ function Chat(props) {
                 let tempArray = []
                 querySnapshot.forEach((doc) => {
                     // doc.data() is never undefined for query doc snapshots
-
+                    // if (doc.exists) {
+                    //     console.log(true)
+                    // }
                     doc.data().contents.forEach(data => {
                         tempArray.push(data)
                     })
@@ -174,6 +180,7 @@ function Chat(props) {
     }, [message])
 
     return (
+
         <ImageBackground source={{ uri: 'https://wallpaperaccess.com/full/797185.png' }} style={{ width: '100%', height: '100%' }}>
             {/* <FlatList
                 data={messageAndChat}
@@ -187,6 +194,8 @@ function Chat(props) {
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 inverted
+                onTouchStart={() => { settextFieldTouched(false) }}
+            //style={textFieldTouched === true ? { marginBottom: 300 } : null}
             />
 
             <View style={styles.textContainer}>
@@ -197,13 +206,19 @@ function Chat(props) {
                     placeholder="Type here..."
                     onChangeText={setmessage}
                     onSubmitEditing={sendChat}
+                    onTouchStart={() => { settextFieldTouched(true) }}
+                //style={textFieldTouched === true ? {} : null}
                 />
             </View>
         </ImageBackground>
+
     );
 }
 
 const styles = StyleSheet.create({
+    keyBoardAvoidingcontainer: {
+        flex: 1
+    },
     container: {
         padding: 10,
     },
