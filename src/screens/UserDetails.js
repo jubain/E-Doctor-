@@ -11,11 +11,10 @@ import firebase from 'firebase';
 const gender = ["Male", "Female", "Prefer not to say"]
 const country = ["Nepal +977", "UK +44"]
 //Firebase
-const user = firebase.auth().currentUser;
 const db = firebase.firestore();
 
 function UserDetails(props) {
-
+    const user = props.route.params.user
     // Theme
     const { colors } = useTheme()
     // End theme
@@ -23,16 +22,22 @@ function UserDetails(props) {
     // Date picker
     const [buttonColour, setbuttonColour] = useState("#C84771")
 
+    const [userGender, setuserGender] = useState('')
+    const [phone, setphone] = useState('')
+    const [dob, setdob] = useState('')
+    const [medicalHistory, setmedicalHistory] = useState()
+
     const [date, setDate] = useState(new Date(1598051730000));
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(true);
+
 
     const onChange = (event, selectedDate) => {
         setbuttonColour('#dddddd')
         const currentDate = selectedDate || date;
         setShow(Platform.OS === 'ios');
         setDate(currentDate);
-        setdob(selectedDate)
+        setdob(currentDate)
     };
 
     const showMode = (currentMode) => {
@@ -46,10 +51,7 @@ function UserDetails(props) {
 
     // Date picker ends
 
-    const [userGender, setuserGender] = useState()
-    const [phone, setphone] = useState('')
-    const [dob, setdob] = useState()
-    const [medicalHistory, setmedicalHistory] = useState()
+
 
 
     const conditions = [
@@ -116,29 +118,26 @@ function UserDetails(props) {
     }
 
     const updateUserDetail = () => {
-        db.collection("users").doc(user.uid).update({
-            dob: `${dob}`,
-            gender: userGender,
-            phone: phone,
-            history: medicalHistory
-        }).then(() => {
-            console.log('user detail updated')
-        }).catch(err => {
-            console.log(err)
-        })
+        console.log(medicalHistory)
+        // db.collection("users").doc(user.uid).update({
+        //     dob: `${dob}`,
+        //     gender: userGender,
+        //     phone: phone,
+        //     medicalHistory: medicalHistory
+        // }).then(() => {
+        //     console.log('user detail updated')
+        // }).catch(err => {
+        //     console.log(err)
+        // })
     }
 
     const getUserDetail = () => {
-        if (user.uid !== undefined) {
-            db.collection("users").doc(user.uid).get()
-                .then((doc) => {
-                    setdob(doc.data().dob)
-                    setuserGender(doc.data().gender)
-                    setphone(doc.data().phone)
-                })
-        } else {
-            console.log('no user')
-        }
+        db.collection("users").doc(user.uid).get()
+            .then((doc) => {
+                setdob(doc.data().dob)
+                setuserGender(doc.data().gender)
+                setphone(doc.data().phone)
+            })
     }
 
     useEffect(() => {
@@ -154,7 +153,6 @@ function UserDetails(props) {
             paddingTop: 20,
             backgroundColor: colors.primary
         }}>
-            {console.log(dob)}
             {badgeMessage != "" ?
                 <Badge containerStyle={{ position: 'absolute' }} textStyle={{ fontWeight: 'bold' }} status={badgeColour} value={badgeMessage} />
                 : null}
@@ -182,13 +180,12 @@ function UserDetails(props) {
                         data={gender}
                         defaultButtonText={userGender}
                         onSelect={(selectedItem, index) => {
-                            console.log(selectedItem, index)
+                            console.log(selectedItem)
                             setuserGender(selectedItem)
                         }}
                         buttonStyle={{ width: '95%', borderRadius: 5 }}
                         buttonTextStyle={{ fontSize: 15 }}
                         rowTextStyle={{ fontSize: 15 }}
-
                     />
                 </View>
             </View>

@@ -4,29 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { Avatar, Button, Icon, Text, SearchBar, ListItem, Overlay } from 'react-native-elements'
 import firebase from 'firebase';
-import { getAuth, signOut } from 'firebase/auth'
+import * as Location from 'expo-location';
 
 var db = firebase.firestore();
-const hospitals = [
-
-]
-
-
-// const findHospital = () => {
-//     db.collection("hospitals").get().then((querySnapshot) => {
-//         querySnapshot.forEach((doc) => {
-//             console.log(doc.data())
-//             hospitals.push(doc)
-//         });
-//     }).catch(error => {
-//         console.log(error)
-//     })
-
-// }
 
 function DashBoard(props) {
     const { colors } = useTheme()
     const user = props.route.params.user
+
+    const [location, setLocation] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
 
     const [userHospital, setUserHospital] = useState("")
 
@@ -82,6 +69,27 @@ function DashBoard(props) {
             </TouchableOpacity>
         )
     }
+
+    useEffect(() => {
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                setErrorMsg('Permission to access location was denied');
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location);
+        })();
+    }, []);
+
+    let text = 'Waiting..';
+    if (errorMsg) {
+        text = errorMsg;
+    } else if (location) {
+        text = JSON.stringify(location);
+    }
+
     return (
         <View style={Platform.OS === 'android' ? styles.container2 : styles.container}>
             <View style={styles.avatar}>
@@ -109,16 +117,10 @@ function DashBoard(props) {
                         <Text>Sign Out</Text>
                     </View>
 
-                    <View style={styles.settings}>
-                        <Icon name="account-circle" type="material-icons" onPress={() => {
-
-                        }} />
-                        <Text>Edit Account</Text>
-                    </View>
-
                 </Overlay>
             </View>
             <View style={styles.greeting}>
+                <Text>{text}</Text>
                 <Text >Hello,{user.photoURL === "doctor" ? " Dr" : ""}</Text>
                 <View style={styles.userAndPill}>
                     {user.displayName ? <Text h3>{user.displayName === null ? null : user.displayName}</Text> : null}
@@ -130,7 +132,7 @@ function DashBoard(props) {
                 </View>
             </View>
             <View style={{ width: '90%' }}>
-                <SearchBar
+                {/* <SearchBar
                     placeholder="Search Hospitals"
                     value={userHospital}
                     containerStyle={styles.searchBar}
@@ -148,7 +150,7 @@ function DashBoard(props) {
                         setloading(false);
                         setsearchBarClick(false)
                     }}
-                />
+                /> */}
                 {searchBarClick == true ?
                     <FlatList
                         data={foundHospitals}
@@ -206,7 +208,9 @@ function DashBoard(props) {
                     </TouchableOpacity> : null}
 
 
-                    <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("ChatList")}>
+                    <TouchableOpacity style={styles.button} onPress={() => props.navigation.navigate("ChatList", {
+                        user: user
+                    })}>
                         <Icon
                             type="fontisto"
                             name="hipchat"
@@ -217,7 +221,9 @@ function DashBoard(props) {
                 </View>
                 <View style={styles.buttons2}>
                     <TouchableOpacity style={styles.button} onPress={() => {
-                        props.navigation.navigate('UserDetails')
+                        props.navigation.navigate('UserDetails', {
+                            user: user
+                        })
                     }}>
                         <Icon
                             type="font-awesome-5"

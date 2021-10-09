@@ -193,7 +193,10 @@ function UserRegistration(props) {
                                                     mName: inputs.mname,
                                                     lName: inputs.lname,
                                                     bookings: [],
-                                                    medicalHistory: []
+                                                    medicalHistory: [],
+                                                    dob: '',
+                                                    gender: '',
+                                                    phone: '',
                                                 });
                                             props.navigation.navigate('Dashboard', { user: user })
                                         })
