@@ -1,15 +1,17 @@
 
 import { useTheme } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, View, Image, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { Avatar, Button, Icon, Text, SearchBar, ListItem, Overlay } from 'react-native-elements'
 import firebase from 'firebase';
 import * as Location from 'expo-location';
+import axios from 'axios';
+import LoginContext from '../context/LoginContext';
 
 var db = firebase.firestore();
 
 function DashBoard(props) {
-    const { colors } = useTheme()
+    const { userDetail } = useContext(LoginContext)
     const user = props.route.params.user
 
     const [location, setLocation] = useState(null);
@@ -22,6 +24,7 @@ function DashBoard(props) {
     const [foundHospitals, setfoundHospitals] = useState([{}])
 
     const [loading, setloading] = useState(false)
+
 
     const findTypedHospitalName = (text) => {
         setloading(false)
@@ -68,6 +71,16 @@ function DashBoard(props) {
                 </ListItem>
             </TouchableOpacity>
         )
+    }
+
+    const fetchAPI = async () => {
+        try {
+            const res = await axios.get('http://28e4-37-60-108-213.ngrok.io/')
+            console.log(res.data)
+        } catch (error) {
+            console.log(error.message)
+        }
+
     }
 
     useEffect(() => {
@@ -123,7 +136,7 @@ function DashBoard(props) {
                 <Text>{text}</Text>
                 <Text >Hello,{user.photoURL === "doctor" ? " Dr" : ""}</Text>
                 <View style={styles.userAndPill}>
-                    {user.displayName ? <Text h3>{user.displayName === null ? null : user.displayName}</Text> : null}
+                    {user.displayName ? <Text h3>{userDetail.displayName === null ? null : user.displayName}</Text> : null}
                     <Icon
                         type="font-awesome-5"
                         name="pills"
@@ -180,6 +193,7 @@ function DashBoard(props) {
                     style={{ width: 100, height: 100 }}
                 />
             </View>
+
             <View style={{ alignSelf: 'stretch', paddingHorizontal: 20, marginTop: '5%' }}>
                 <Text style={{ fontWeight: 'bold', fontSize: 18 }}>What do you need?</Text>
             </View>
@@ -233,7 +247,7 @@ function DashBoard(props) {
                         <Text style={{ fontSize: 12, color: "white" }}>{user.photoURL !== 'doctor' ? "Profile" : "Patients Medical History"}</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.button}>
+                    <TouchableOpacity style={styles.button} onPress={fetchAPI}>
                         <Icon
                             type="font-awesome"
                             name="ambulance"

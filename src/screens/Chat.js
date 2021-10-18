@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList } from 'react-native';
+import { Alert, FlatList, Platform } from 'react-native';
 import { StyleSheet, View, TouchableOpacity, ImageBackground, KeyboardAvoidingView } from 'react-native'
-import { ListItem, Avatar, Button, Text } from 'react-native-elements'
-import { TextInput } from 'react-native';
+import { ListItem, Avatar, Button } from 'react-native-elements'
+import { TextInput, Text } from 'react-native';
 import firebase from 'firebase';
 
 function Chat(props) {
     const [message, setmessage] = useState("")
-
     var doctor = props.route.params.doctorEmail
     var patient = props.route.params.patientEmail
     var user = props.route.params.user
+    const date = props.route.params.date
+    const time = props.route.params.time
 
     const [messageAndChat, setmessageAndChat] = useState()
     const db = firebase.firestore()
@@ -29,7 +30,7 @@ function Chat(props) {
                 }
             ]}>
                 {item.userId !== user.email && <Text style={styles.name}>{item.userId}</Text>}
-                <Text style={styles.message}>{item.message}</Text>
+                <Text selectable={true} style={styles.message}>{item.message}</Text>
                 {/* {item.userId !== 'Jubeen' && <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>} */}
             </View>
         </View>
@@ -39,41 +40,51 @@ function Chat(props) {
     const sendChat = () => {
         if (message !== "") {
             var documentId
-            db.collection('chats').where(user.photoURL === 'patient' ? "patientEmail" : 'doctorEmail', '==', user.email).get()
+            db.collection('chats').where(user.photoURL === "patient" ? "patientEmail" : "doctorEmail", "==", user.email)
+                .where(user.photoURL === "patient" ? "doctorEmail" : "patientEmail", "==", user.photoURL === "patient" ? doctor : patient)
+                .get()
                 .then((querySnapshot) => {
                     querySnapshot.forEach((doc) => {
-                        console.log(doc.data())
-                        if (user.photoURL === 'doctor') {
-                            if (doc.data().patientEmail === patient) {
-                                db.collection('chats').doc(`${doc.id}`)
-                                    .update({
-                                        "contents": firebase.firestore.FieldValue.arrayUnion({
-                                            id: `${Math.random()}`,
-                                            message: message,
-                                            userId: props.route.params.user.email
-                                        })
-                                    }).then(() => {
-                                        setmessage('')
-                                    }).catch(err => {
-                                        console.log(err)
-                                    })
-                            }
-                        } else {
-                            if (doc.data().doctorEmail === doctor) {
-                                db.collection('chats').doc(`${doc.id}`)
-                                    .update({
-                                        "contents": firebase.firestore.FieldValue.arrayUnion({
-                                            id: `${Math.random()}`,
-                                            message: message,
-                                            userId: props.route.params.user.email
-                                        })
-                                    }).then(() => {
-                                        setmessage('')
-                                    }).catch(err => {
-                                        console.log(err)
-                                    })
-                            }
-                        }
+                        db.collection('chats').doc(doc.id).update({
+                            "contents": firebase.firestore.FieldValue.arrayUnion({
+                                id: Math.random(),
+                                message: message,
+                                userId: user.email
+                            })
+                        }).then(() => {
+                            setmessage("")
+                        })
+                        // if (user.photoURL === 'doctor') {
+                        //     if (doc.data().patientEmail === patient) {
+                        //         db.collection('chats').doc(`${doc.id}`)
+                        //             .update({
+                        //                 "contents": firebase.firestore.FieldValue.arrayUnion({
+                        //                     id: `${Math.random()}`,
+                        //                     message: message,
+                        //                     userId: props.route.params.user.email
+                        //                 })
+                        //             }).then(() => {
+                        //                 setmessage('')
+                        //             }).catch(err => {
+                        //                 console.log(err)
+                        //             })
+                        //     }
+                        // } else {
+                        //     if (doc.data().doctorEmail === doctor) {
+                        //         db.collection('chats').doc(`${doc.id}`)
+                        //             .update({
+                        //                 "contents": firebase.firestore.FieldValue.arrayUnion({
+                        //                     id: `${Math.random()}`,
+                        //                     message: message,
+                        //                     userId: props.route.params.user.email
+                        //                 })
+                        //             }).then(() => {
+                        //                 setmessage('')
+                        //             }).catch(err => {
+                        //                 console.log(err)
+                        //             })
+                        //     }
+                        // }
 
                     });
 
@@ -82,17 +93,22 @@ function Chat(props) {
                     console.log("Error getting documents: ", error);
                 });
         } else {
-            alert("please write a message")
+            alert("Empty Message")
         }
 
     }
 
     setTimeout(() => {
         db.collection("chats").where(user.photoURL === "patient" ? "patientEmail" : "doctorEmail", "==", user.email)
+            .where(user.photoURL === "patient" ? "doctorEmail" : "patientEmail", "==", user.photoURL === "patient" ? doctor : patient)
+            .where('time', '==', time).where('date', '==', date)
             .get()
             .then((querySnapshot) => {
                 let tempArray = []
                 querySnapshot.forEach((doc) => {
+                    // if (doc.exists) {
+                    //     console.log('document exist')
+                    // }
                     // if (user.photoURL === "doctor") {
                     //     if (doc.data().doctorEmail === user.email && doc.data().patientEmail === patient) {
 
@@ -110,16 +126,31 @@ function Chat(props) {
 
                 });
                 setmessageAndChat(tempArray.reverse())
+
             })
             .catch((error) => {
                 console.log("Error getting documents: ", error);
             });
-    }, 500);
+    }, 50000000000);
     useEffect(() => {
-
-
-
-    }, [message])
+        Alert.alert(
+            "Dear User",
+            "You will have 1 minutes for this chat box. After that you will be taken out from the chat room. Thank you.",
+            [
+                {
+                    text: "Cancel",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                {
+                    text: "OK", onPress: () => { }
+                    // setTimeout(() => {
+                    //     props.navigation.goBack(null)
+                    // }, 10000)
+                }
+            ]
+        )
+    }, [])
 
     return (
 
@@ -133,7 +164,9 @@ function Chat(props) {
                 onTouchStart={() => { settextFieldTouched(false) }}
             //style={textFieldTouched === true ? { marginBottom: 300 } : null}
             />
-            <View style={textFieldTouched === false ? styles.textAndButtonContainer : styles.textAndButtonContainerAfterKeyboard}>
+            <View style={textFieldTouched === false ? styles.textAndButtonContainer : Platform.OS === 'ios' ? styles.textAndButtonContainerAfterKeyboard :
+                styles.textAndButtonContainerAfterKeyboardAndorid
+            }>
                 <View style={styles.textContainer}>
                     <TextInput
                         value={message}
@@ -199,6 +232,12 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
         marginBottom: 350,
         height: '6%',
+        display: 'flex',
+        flexDirection: 'row',
+        width: '100%'
+    },
+    textAndButtonContainerAfterKeyboardAndorid: {
+        marginHorizontal: 10,
         display: 'flex',
         flexDirection: 'row',
         width: '100%'

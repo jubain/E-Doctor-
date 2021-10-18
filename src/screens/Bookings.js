@@ -18,12 +18,14 @@ const onJoinPress = () => {
 var bookingId // To get chat of same booking Id
 
 function Bookings(props) {
+
     const [canBook, setcanBook] = useState(false)
     const [bookings, setbookings] = useState()
     const { colors } = useTheme()
     const user = props.route.params.user
 
     const renderItem = ({ item }) => {
+
         return (
             // <TouchableOpacity disabled={item.date === newDate ? false : true} style={{}}>
             //     <ListItem bottomDivider>
@@ -55,7 +57,9 @@ function Bookings(props) {
                 doctorEmail: item.doctorEmail,
                 patientName: item.patientName,
                 patientEmail: item.pateintEmail,
-                user: user
+                time: item.time,
+                date: item.date,
+                user: props.route.params.user
             })}>
 
                 {/* <ListItem bottomDivider containerStyle={item.date === newDate ?
@@ -63,7 +67,7 @@ function Bookings(props) {
                     : { backgroundColor: "#dddddd", borderRadius: 20 }
                 }> */}
                 <ListItem>
-                    {console.log(item)}
+                    {console.log('from bookings', item.date)}
                     <ListItem.Content>
                         <View style={{ height: 50, width: '10%', backgroundColor: '#94d0cc', margin: 0, borderRadius: 10 }}>
                         </View>
@@ -92,9 +96,7 @@ function Bookings(props) {
         db.collection('bookings').where(user.photoURL === "patient" ? "pateintEmail" : "doctorEmail", "==", user.email).get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    // console.log(doc.id, " => ", doc.data());
-                    console.log(doc.id)
+
                     tempArray.push(doc.data())
                 });
                 setbookings(tempArray)

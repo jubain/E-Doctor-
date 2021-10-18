@@ -8,15 +8,15 @@ import firebase from 'firebase';
 
 function Doctor(props) {
     const doctor = props.route.params.item
+    const user = props.route.params.user
     const db = firebase.firestore();
-    //props.route.params.item.history
+    const [booked, setbooked] = useState(false)
+
     const [bookButtonTitle, setbookButtonTitle] = useState('Book')
     const { colors } = useTheme()
 
-    const date = `${props.route.params.date}`
-    const time = `${props.route.params.time}`
-    console.log(date.slice(0, 10))
-    console.log(time.slice(12, 17))
+    const date = props.route.params.date
+    const time = props.route.params.time
 
     const renderItem = ({ item }) => {
         return (
@@ -30,20 +30,26 @@ function Doctor(props) {
         db.collection('chats').add({
             contents: [],
             doctorEmail: doctorEmail,
-            patientEmail: patientEmail
+            patientEmail: patientEmail,
+            date: date,
+            time: time,
         })
     }
 
     const checkBookings = () => {
         // if pre booking found then send back to previous page
-        db.collection('bookings').where('doctorEmail', '==', doctor.email)
+        console.log(date)
+        //console.log(doctor.email)
+        db.collection('bookings').where('doctorEmail', '==', doctor.email).where("date", "==", `${date}`).where("time", '==', `${time}`)
             .get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
-                    if (doc.data().doctorEmail === doctor.email && doc.data().date === date.slice(0, 10) && doc.data().time === time.slice(12, 17)) {
+                    console.log(doc.data())
+                    if (doc.exists) {
+                        console.log('exist')
                         Alert.alert(
                             "Sorry",
-                            `The doctor is booked for ${time.slice(12, 17)} on ${date.slice(0, 10)}`,
+                            `The doctor is booked for ${doc.data().time} on ${date.slice(0, 7)}`,
                             [
                                 { text: "OK", onPress: () => props.navigation.goBack(null) }
                             ]
@@ -58,29 +64,28 @@ function Doctor(props) {
     }
 
     const doBooking = () => {
-        const user = firebase.auth().currentUser;
-        if (user !== null) {
-            // The user object has basic properties such as display name, email, etc.
-            const displayName = user.displayName;
-            const email = user.email;
+        // The user object has basic properties such as display name, email, etc.
+        const displayName = user.displayName;
+        const email = user.email;
 
-            db.collection("bookings").add({
-                patientName: displayName,
-                pateintEmail: email,
-                doctorName: doctor.fName,
-                doctorEmail: doctor.email,
-                date: date.slice(0, 10),
-                time: time.slice(12, 17)
+        db.collection("bookings").add({
+            patientName: displayName,
+            pateintEmail: email,
+            doctorName: doctor.fName,
+            doctorEmail: doctor.email,
+            date: date,
+            time: time
+        })
+            .then((docRef) => {
+                createChatBox(doctor.email, email)
+                alert('Booking complete. Now you can see your bookings from the dashboard.')
+                setbooked(true)
+                setbookButtonTitle('Booked')
             })
-                .then((docRef) => {
-                    createChatBox(doctor.email, email)
-                    alert('Booking complete. Now you can see your bookings from the dashboard.')
-                    setbookButtonTitle('Booked')
-                })
-                .catch((error) => {
-                    console.error("Error adding document: ", error);
-                });
-        }
+            .catch((error) => {
+                console.error("Error adding document: ", error);
+            });
+
 
     }
     const History = () => (
@@ -155,7 +160,7 @@ function Doctor(props) {
                 />}
             />
             <View style={{ width: '100%' }}>
-                <Button buttonStyle={{ paddingBottom: 35, backgroundColor: colors.secondary }} title={bookButtonTitle} onPress={doBooking} />
+                <Button disabled={booked === true ? true : false} buttonStyle={{ paddingBottom: 35, backgroundColor: colors.secondary }} title={bookButtonTitle} onPress={doBooking} />
             </View>
         </View>
     );

@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, FlatList, DatePickerIOSBase, } from 'react-native'
 import Modal from 'react-native-modal';
 import { useTheme } from '@react-navigation/native';
 import { Input, Text, Button, Icon, ListItem, Avatar } from 'react-native-elements'
-import DateTimePicker from '@react-native-community/datetimepicker';
 import ParallaxScrollView from 'react-native-parallax-scroll-view';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import firebase from 'firebase';
 
 function BookAppointments(props) {
@@ -40,31 +40,38 @@ function BookAppointments(props) {
     // Date picker
 
     const [date, setDate] = useState(new Date());
+    const [userPickedTime, setuserPickedTime] = useState('Select a Time')
+    const [userPickedDate, setuserPickedDate] = useState('Select a Date')
 
-    const [mode, setMode] = useState('date');
-    const [show, setShow] = useState(true);
-    const dateString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate()
-    const [userPickedTime, setuserPickedTime] = useState("")
 
-    const onChange = (event, selectedDate) => {
-        const currentDate = selectedDate || date;
-        var selectedTime = `${selectedDate}`
-        setShow(Platform.OS === 'ios');
-        setDate(selectedDate);
-        setuserPickedTime(selectedTime.slice(4, 21))
-        console.log(selectedDate)
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+
+    const showDatePicker = () => {
+        setDatePickerVisibility(true);
+    };
+    const showTimePicker = () => {
+        setTimePickerVisibility(true)
+    }
+
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false);
+    };
+    const hideTimePicker = () => {
+        setTimePickerVisibility(false);
     };
 
-    const showMode = (currentMode) => {
-        setShow(true);
-        setMode(currentMode);
+    const handleDateConfirm = (date) => {
+        const userDate = `${date}`
+        setuserPickedDate(userDate.slice(4, 15))
+        hideDatePicker();
     };
-
-    const showDatepicker = () => {
-        showMode('date');
+    const handleTimeConfirm = (date) => {
+        const userTime = `${date}`
+        setuserPickedTime(userTime.slice(16, 21))
+        hideDatePicker();
     };
-
-    // Date picker ends
+    // ENds
 
     const [pickSpeciality, setpickSpeciality] = useState(false)
     // End Buttons
@@ -86,7 +93,7 @@ function BookAppointments(props) {
     const doctorDetail = (item) => {
         props.navigation.navigate('Doctor', {
             item: item,
-            date: date,
+            date: userPickedDate,
             time: userPickedTime,
             user: user
         })
@@ -144,25 +151,27 @@ function BookAppointments(props) {
         if (userlocation === "" || userDepartmentPick === "" || userChoosedHospital === "") {
             alert("please type location, choose hospital and choose faculty of doctors you want.")
         }
+        else {
+            db.collection("doctors").where("hospital", "==", userChoosedHospital.data.name)
+                .get()
+                .then((querySnapshot) => {
+                    // console.log(querySnapshot)
+                    let tempArray = []
+                    querySnapshot.forEach((doc) => {
+                        // doc.data() is never undefined for query doc snapshots
+                        //console.log(doc.data())
+                        if (doc.data().faculty === userDepartmentPick) {
+                            tempArray.push(doc.data())
+                        }
+                    });
+                    setdoctorList(tempArray)
 
-        db.collection("doctors").where("hospital", "==", userChoosedHospital.data.name)
-            .get()
-            .then((querySnapshot) => {
-                // console.log(querySnapshot)
-                let tempArray = []
-                querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    //console.log(doc.data())
-                    if (doc.data().faculty === userDepartmentPick) {
-                        tempArray.push(doc.data())
-                    }
+                })
+                .catch((error) => {
+                    console.log(error);
                 });
-                setdoctorList(tempArray)
 
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+        }
 
     }
 
@@ -178,18 +187,16 @@ function BookAppointments(props) {
                         <View>
                             <Text style={{ fontSize: 15, fontWeight: 'bold' }}>Pick a Date</Text>
                         </View>
+                        <Button title={userPickedDate} onPress={showDatePicker} />
+                        <DateTimePickerModal
+                            isVisible={isDatePickerVisible}
+                            mode="date"
+                            minimumDate={date}
+                            display="spinner"
+                            onConfirm={handleDateConfirm}
+                            onCancel={hideDatePicker}
+                        />
 
-                        {show === true ?
-                            <DateTimePicker
-                                testID="dateTimePicker"
-                                value={date}
-                                mode="date"
-                                is24Hour={false}
-                                display="default"
-                                onChange={onChange}
-                                style={{ width: '37%' }}
-                            />
-                            : null}
                     </View>
 
                     <View style={{ width: '90%', marginTop: '10%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -197,23 +204,22 @@ function BookAppointments(props) {
                             <Text style={{ fontSize: 15, fontWeight: 'bold' }}>Pick a Time</Text>
                         </View>
 
-                        {show === true ?
-                            <DateTimePicker
-                                testID="dateTimePicker"
-                                value={date}
-                                mode='time'
-                                is24Hour={false}
-                                display="inline"
-                                onChange={onChange}
-                                style={{ width: '58%', backgroundColor: "white" }}
-                            />
-                            : null}
+
+                        <Button title={userPickedTime} onPress={showTimePicker} />
+                        <DateTimePickerModal
+                            isVisible={isTimePickerVisible}
+                            mode="time"
+                            display="spinner"
+                            onConfirm={handleTimeConfirm}
+                            onCancel={hideTimePicker}
+                        />
+
                     </View>
 
                     <View style={styles.location}>
                         <View style={{ width: '80%' }}>
                             <Text style={{ fontSize: 16, fontWeight: 'bold', paddingLeft: 10, paddingTop: 30, paddingBottom: 25, color: colors.primary }}>Location</Text>
-                            <Input labelStyle={styles.label} label="Enter a location" onFocus={showDatepicker}
+                            <Input labelStyle={styles.label} label="Enter a location"
                                 placeholder="e.g. Kathmandu, Pokhara"
                                 value={userlocation}
                                 onChangeText={text => setlocation(text)}

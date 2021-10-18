@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { FlatList, StyleSheet, View, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native'
+import React, { useState, useEffect, useContext } from 'react';
+import { FlatList, StyleSheet, View, TouchableOpacity, Platform, Dimensions } from 'react-native'
 import { Text, Input, ListItem, Chip, Badge, Button, Icon } from 'react-native-elements'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useTheme } from '@react-navigation/native';
 import SelectDropdown from 'react-native-select-dropdown'
 import firebase from 'firebase';
+import LoginContext from '../context/LoginContext';
 
+
+const windowHeight = Dimensions.get('window').height;
 
 const gender = ["Male", "Female", "Prefer not to say"]
 const country = ["Nepal +977", "UK +44"]
@@ -14,7 +17,8 @@ const country = ["Nepal +977", "UK +44"]
 const db = firebase.firestore();
 
 function UserDetails(props) {
-    const user = props.route.params.user
+    const { userDetail } = useContext(LoginContext)
+
     // Theme
     const { colors } = useTheme()
     // End theme
@@ -29,7 +33,7 @@ function UserDetails(props) {
 
     const [date, setDate] = useState(new Date(1598051730000));
     const [mode, setMode] = useState('date');
-    const [show, setShow] = useState(true);
+    const [show, setShow] = useState(false);
 
 
     const onChange = (event, selectedDate) => {
@@ -76,7 +80,8 @@ function UserDetails(props) {
     // );
     const [backgroundColour, setbackgroundColour] = useState("white")
 
-    const removeDisease = (item) => {
+    const removeDisease = ({ item }) => {
+
         let tempArray = [...selectedId]
         const index = tempArray.findIndex(obj => obj.id === item.id)
         tempArray.splice(index, 1)
@@ -132,12 +137,33 @@ function UserDetails(props) {
     }
 
     const getUserDetail = () => {
-        db.collection("users").doc(user.uid).get()
+        let tempArray = []
+        db.collection("users").doc(userDetail.uid).get()
             .then((doc) => {
                 setdob(doc.data().dob)
                 setuserGender(doc.data().gender)
                 setphone(doc.data().phone)
+                setmedicalHistory(doc.data().medicalHistory)
             })
+    }
+
+    const renderMedicalHistory = ({ item }) => {
+        return (
+            <TouchableOpacity>
+                <ListItem bottomDivider >
+                    <ListItem.Content>
+                        <ListItem.Title style={{ fontSize: 13 }}>{item.name}</ListItem.Title>
+                    </ListItem.Content>
+                </ListItem>
+            </TouchableOpacity>
+        )
+
+        {/* <ListItem bottomDivider >
+            {console.log(item)}
+            <ListItem.Content>
+                <ListItem.Title style={{ fontSize: 13 }}>{item.name}</ListItem.Title>
+            </ListItem.Content>
+        </ListItem> */}
     }
 
     useEffect(() => {
@@ -149,15 +175,16 @@ function UserDetails(props) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            height: '100%',
             paddingTop: 20,
-            backgroundColor: colors.primary
+            backgroundColor: colors.primary,
+            height: windowHeight
         }}>
-            {badgeMessage != "" ?
+            {/* {badgeMessage != "" ?
                 <Badge containerStyle={{ position: 'absolute' }} textStyle={{ fontWeight: 'bold' }} status={badgeColour} value={badgeMessage} />
-                : null}
+                : null} */}
             <View style={styles.dob}>
                 <Text style={{ fontWeight: 'bold' }}>Date of Birth</Text>
+                <Button title="Select Date off Birth" onPress={() => setShow(true)}></Button>
                 {show && (
                     <DateTimePicker
                         testID="dateTimePicker"
@@ -222,41 +249,68 @@ function UserDetails(props) {
                     leftIconContainerStyle={{ width: '35%', marginBottom: 5 }}
                 />
             </View>
-            <View style={{ display: 'flex', alignItems: 'center' }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Medical History</Text>
-                <Text style={{ fontSize: 12 }}>Pick the condition from below if you have them</Text>
-                {selectedId.length != 0 ?
-                    <View style={{ height: 50, marginTop: 20 }}>
-                        <ScrollView horizontal={true}>
-                            {selectedId.map(item => {
-                                return (
-                                    <Chip
-                                        title={item.name || ""}
-                                        key={item.id}
-                                        icon={{
-                                            name: "close",
-                                            type: "font-awesome",
-                                            size: 20,
-                                            color: "blue",
-                                        }}
-                                        type="outline"
-                                        iconRight
-                                        style={{ marginHorizontal: 5 }}
-                                        onPress={() => { removeDisease(item) }}
-                                    />
-                                )
-                            })}
-                        </ScrollView>
-                    </View>
-                    : null}
 
-                <View style={selectedId != 0 ? styles.medicalConditionList1 : styles.medicalConditionList2}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Medical History</Text>
+            <FlatList
+                data={medicalHistory}
+                keyExtractor={item => item.id}
+                renderItem={renderMedicalHistory}
+                horizontal={true}
+                style={{ width: '100%', height: '100%', backgroundColor: 'black' }}
+            />
+            <Text style={{ fontSize: 12 }}>Pick the condition from below if you have them</Text>
+            {selectedId.length !== 0 ?
+                <FlatList
+                    data={selectedId}
+                    horizontal={true}
+                    style={{ height: 900 }}
+                    keyExtractor={item => item.id}
+                    renderItem={item => {
+                        return (
+                            <Chip
+                                title={item.item.name || ""}
+                                key={item.item.id}
+                                icon={{
+                                    name: "close",
+                                    type: "font-awesome",
+                                    size: 20,
+                                    color: "blue",
+                                }}
+                                type="outline"
+                                iconRight
+                                onPress={() => { removeDisease(item) }}
+                            />
+                        )
+                    }}
+                />
+
+                : null}
+
+            {/* <ScrollView horizontal={true}>
+                        {selectedId.map(item => {
+                            return (
+                                
+                            )
+                        })}
+                    </ScrollView> */}
+            <View style={{ width: '100%', display: 'flex', flexDirection: 'column', borderWidth: 1 }}>
+                <Button
+                    title="Add"
+                    buttonStyle={{ width: 90, backgroundColor: colors.secondary }}
+                    titleStyle={{ fontWeight: 'bold' }}
+                    onPress={updateUserDetail}
+                >
+                </Button>
+                <View style={{ height: '100%' }}>
                     <FlatList
                         data={conditions}
                         renderItem={renderItem}
                         keyExtractor={(item) => item.id}
                     />
-                    {selectedId.length != 0 ?
+                </View>
+            </View>
+
+            {/* {selectedId.length != 0 ?
                         <View style={Platform.OS === 'ios' ? { position: 'absolute', marginTop: '75%', marginLeft: '75%' } :
                             { position: 'absolute', marginTop: '65%', marginLeft: '75%' }}>
                             <Button
@@ -268,9 +322,7 @@ function UserDetails(props) {
                         </View>
 
                         : null
-                    }
-                </View>
-            </View>
+                    } */}
         </View>
     );
 }
@@ -302,10 +354,10 @@ const styles = StyleSheet.create({
         width: '95%'
     },
     medicalConditionList1: {
-        width: 400, height: '65%'
+        width: 400,
     },
     medicalConditionList2: {
-        width: 400, height: '70%', marginTop: '5%'
+        width: 400, marginTop: '5%'
     }
 })
 export default UserDetails;
