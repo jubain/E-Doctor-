@@ -1,17 +1,18 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useContext } from 'react';
 import { FlatList } from 'react-native';
 import { StyleSheet, View, TouchableOpacity } from 'react-native'
 import { ListItem, Avatar, Button, Text } from 'react-native-elements'
 import firebase from 'firebase';
+import LoginContext from '../context/LoginContext';
 
 function ChatList(props) {
 
     const [bookings, setbookings] = useState()
-    const user = props.route.params.user
+    const {userDetail} = useContext(LoginContext)
     const getBookingInformation = () => {
         const db = firebase.firestore();
-        db.collection("bookings").where(user.photoURL === 'doctor' ? 'doctorEmail' : 'pateintEmail', '==', user.email)
+        db.collection("bookings").where(userDetail.photoURL === 'doctor' ? 'doctorEmail' : 'pateintEmail', '==', userDetail.email)
             .get()
             .then((querySnapshot) => {
                 let tempArray = []
@@ -29,7 +30,7 @@ function ChatList(props) {
 
     const renderItem = ({ item }) => (
         <TouchableOpacity onLongPress={() => console.log("hello")} onPress={() => props.navigation.navigate('Chat', {
-
+            item:item
         })}>
             <ListItem bottomDivider>
                 <Avatar source={{ uri: item.avatar_url }} />

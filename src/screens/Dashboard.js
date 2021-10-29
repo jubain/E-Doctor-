@@ -235,9 +235,7 @@ function DashBoard(props) {
                 </View>
                 <View style={styles.buttons2}>
                     <TouchableOpacity style={styles.button} onPress={() => {
-                        props.navigation.navigate('UserDetails', {
-                            user: user
-                        })
+                        props.navigation.navigate(userDetail.photoURL==='doctor'?'PatientList':'UserDetails')
                     }}>
                         <Icon
                             type="font-awesome-5"

@@ -131,7 +131,8 @@ function Chat(props) {
             .catch((error) => {
                 console.log("Error getting documents: ", error);
             });
-    }, 50000000000);
+    }, 500);
+    
     useEffect(() => {
         Alert.alert(
             "Dear User",
