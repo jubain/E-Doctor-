@@ -126,7 +126,16 @@ const App = (props) => {
         <Stack.Screen
           name="UserDetails"
           component={UserDetails}
-          options={{ title: "Detail" }}
+          options={{
+            title: "Detail",
+            headerLeft: () => (
+              <Button
+                title="Back"
+                type="clear"
+                onPress={() => navigate("Dashboard")}
+              />
+            ),
+          }}
         />
         <Stack.Screen
           name="Dashboard"
