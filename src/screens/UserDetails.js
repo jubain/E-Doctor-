@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Platform,
   Dimensions,
+  Alert,
 } from "react-native";
 import {
   Text,
@@ -17,7 +18,6 @@ import {
   Icon,
 } from "react-native-elements";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import DropDownPicker from "react-native-dropdown-picker";
 import { useTheme } from "@react-navigation/native";
 import SelectDropdown from "react-native-select-dropdown";
 import firebase from "firebase";
@@ -48,6 +48,7 @@ function UserDetails(props) {
   const [date, setDate] = useState(new Date(1598051730000));
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
+  const [infoUpdated, setinfoUpdated] = useState(false)
 
   const onChange = (event, selectedDate) => {
     setbuttonColour("#dddddd");
@@ -142,11 +143,15 @@ function UserDetails(props) {
   };
 
   const updateUserDetail = () => {
+    console.log(medicalHistory)
     db.collection("users").doc(userDetail.uid).update({
         dob: dob,
         gender: userGender,
-        medicalHistory: medicalHistory
+        medicalHistory: selectedId
     }).then(() => {
+      Alert.alert("User detail updated")
+      setinfoUpdated(true)
+      setSelectedId([])
         console.log('user detail updated')
     }).catch(err => {
         console.log(err)
@@ -182,7 +187,7 @@ function UserDetails(props) {
 
   useEffect(() => {
     getUserDetail();
-  }, []);
+  }, [infoUpdated===true]);
 
   return (
     <View

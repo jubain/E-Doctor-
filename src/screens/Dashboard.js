@@ -26,16 +26,14 @@ var db = firebase.firestore();
 
 function DashBoard(props) {
   const { userDetail } = useContext(LoginContext);
-  const user = props.route.params.user;
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
   const [userHospital, setUserHospital] = useState("");
   const [foundHospitals, setfoundHospitals] = useState();
   const [searchBarClick, setsearchBarClick] = useState("false");
-    const [userTypedHospital, setuserTypedHospital] = useState()
+  const [userTypedHospital, setuserTypedHospital] = useState();
   const [loading, setloading] = useState(false);
-
   // Theme
   const { colors } = useTheme();
   // End theme
@@ -57,17 +55,15 @@ function DashBoard(props) {
   };
 
   const findHospital = () => {
-      let storedHospital=""
-      let tempArray=[]
-    foundHospitals.forEach(hospital=>{
-        storedHospital = hospital.name
-        console.log(userHospital)
-        if(storedHospital.startsWith(`${userHospital.text}`)){
-            console.log('found')
-            tempArray.push(storedHospital)
-        }
-    })
-    setuserTypedHospital(tempArray)
+    let storedHospital = "";
+    let tempArray = [];
+    foundHospitals.forEach((hospital) => {
+      storedHospital = hospital.name;
+      if (storedHospital.startsWith(`${userHospital.text}`)) {
+        tempArray.push(storedHospital);
+      }
+    });
+    setuserTypedHospital(tempArray);
   };
 
   // Setting button Overlay
@@ -81,13 +77,14 @@ function DashBoard(props) {
   useEffect(() => {
     getHospital();
   }, []);
+
   const renderItem = ({ item }) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          setsearchBarClick(false);
-          setloading(false)
-          setUserHospital(item)
+          props.navigation.navigate("Hospital", {
+            item: item,
+          });
         }}
       >
         <ListItem bottomDivider>
@@ -151,7 +148,7 @@ function DashBoard(props) {
                   .auth()
                   .signOut()
                   .then(() => {
-                    //props.navigation.navigate('Login')
+                    props.navigation.navigate("Login");
                   })
                   .catch((error) => {
                     console.log(error);
@@ -163,14 +160,19 @@ function DashBoard(props) {
         </Overlay>
       </View>
       <View style={styles.greeting}>
-        <Text>{text}</Text>
-        <Text>Hello,{user.photoURL === "doctor" ? " Dr" : ""}</Text>
+        {userDetail.photoURL !== "hospital" ? (
+          <Text h4>
+            Hello,
+            {userDetail.photoURL == "doctor" ? " Dr" : ""}
+          </Text>
+        ) : null}
+
         <View style={styles.userAndPill}>
-          {user.displayName ? (
-            <Text h3>
-              {userDetail.displayName === null ? null : user.displayName}
-            </Text>
-          ) : null}
+          <Text h3>
+            {userDetail.photoURL == "doctor"
+              ? userDetail.fName
+              : userDetail.displayName}
+          </Text>
           <Icon
             type="font-awesome-5"
             name="pills"
@@ -178,79 +180,88 @@ function DashBoard(props) {
           />
         </View>
       </View>
-      <View style={{ width: "90%" }}>
-        <SearchBar
-          placeholder="Search Hospitals"
-          value={userHospital}
-          containerStyle={styles.searchBar}
-          inputStyle={{
-            backgroundColor: "white",
-            color: "black",
-            borderWidth: 0,
-          }}
-          inputContainerStyle={{ backgroundColor: "white" }}
-          onChangeText={(text) => {
-            setUserHospital({ ...userHospital, text });
-            setsearchBarClick(true);
-            setloading(true);
-            findHospital();
-          }}
-          searchIcon={{ color: colors.secondary, size: 30 }}
-          showLoading={loading}
-          onClear={() => {
-            setloading(false);
-            setsearchBarClick(false);
-          }}
-        />
-        {searchBarClick == true ? (
-          <FlatList
-            data={userTypedHospital}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            style={{
-              position: "absolute",
-              marginTop: "24.5%",
-              width: "90%",
-              marginLeft: "5%",
-              zIndex: 1,
+      {userDetail.photoURL == "patient" ? (
+        <View style={{ width: "90%" }}>
+          <SearchBar
+            placeholder="Search Hospitals"
+            value={userHospital}
+            containerStyle={styles.searchBar}
+            inputStyle={{
+              backgroundColor: "white",
+              color: "black",
+              borderWidth: 0,
+            }}
+            inputContainerStyle={{ backgroundColor: "white" }}
+            onChangeText={(text) => {
+              setUserHospital({ ...userHospital, text });
+              setsearchBarClick(true);
+              setloading(true);
+              findHospital();
+            }}
+            searchIcon={{ color: colors.secondary, size: 30 }}
+            showLoading={loading}
+            onClear={() => {
+              setloading(false);
+              setsearchBarClick(false);
             }}
           />
-        ) : null}
-      </View>
-      <View style={styles.card}>
-        <View
-          style={{
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
+          {searchBarClick == true ? (
+            <FlatList
+              data={userTypedHospital}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              style={{
+                position: "absolute",
+                marginTop: "24.5%",
+                width: "90%",
+                marginLeft: "5%",
+                zIndex: 1,
+              }}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {userDetail.photoURL == "patient" || userDetail.photoURL == "doctor" ? (
+        <View style={styles.card}>
           <View
             style={{
-              width: "85%",
               display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <Text style={{ fontWeight: "bold", fontSize: 18, color: "white" }}>
-              Stay Safe!
-            </Text>
-            <View>
-              <Text style={{ color: "white" }}>
-                Have you booked your vaccine yet?
+            <View
+              style={{
+                width: "85%",
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text
+                style={{ fontWeight: "bold", fontSize: 18, color: "white" }}
+              >
+                Stay Safe!
               </Text>
-              <Text style={{ color: "white" }}>If not book it quickly and</Text>
-              <Text style={{ color: "white" }}>
-                remeber to wear mask all the time.
-              </Text>
+              <View>
+                <Text style={{ color: "white" }}>
+                  Have you booked your vaccine yet?
+                </Text>
+                <Text style={{ color: "white" }}>
+                  If not book it quickly and
+                </Text>
+                <Text style={{ color: "white" }}>
+                  remeber to wear mask all the time.
+                </Text>
+              </View>
             </View>
           </View>
+          <Image
+            source={require("../../public/removemask.png")}
+            style={{ width: 100, height: 100 }}
+          />
         </View>
-        <Image
-          source={require("../../public/removemask.png")}
-          style={{ width: 100, height: 100 }}
-        />
-      </View>
+      ) : null}
 
       <View
         style={{ alignSelf: "stretch", paddingHorizontal: 20, marginTop: "5%" }}
@@ -260,78 +271,85 @@ function DashBoard(props) {
         </Text>
       </View>
       <View style={styles.buttonsContainer}>
-        <View style={styles.buttons1}>
+        {userDetail.photoURL == "doctor" || userDetail.photoURL == "patient" ? (
           <TouchableOpacity
             style={styles.button}
             onPress={() =>
               props.navigation.navigate("Bookings", {
-                userEmail: user.email,
-                user: user,
+                // userEmail: user.email,
+                // user: user,
               })
             }
           >
             <Icon type="ant-design" name="book" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>Bookings</Text>
+            <Text style={{ fontSize: 12, color: "white" }}>
+              {userDetail.photoURL == "patient" ||
+              userDetail.photoURL == "doctor"
+                ? "Bookings"
+                : "Patient List"}
+            </Text>
           </TouchableOpacity>
-          {user.photoURL !== "doctor" ? (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() =>
-                props.navigation.navigate("Book", {
-                  user: user,
-                })
-              }
-            >
-              <Icon type="fontisto" name="doctor" color="white" />
-              <Text style={{ fontSize: 12, color: "white" }}>
-                Find a Doctor
-              </Text>
-            </TouchableOpacity>
-          ) : null}
+        ) : null}
 
+        {userDetail.photoURL == "patient" ? (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() =>
+              props.navigation.navigate("Book", {
+                //user: user,
+              })
+            }
+          >
+            <Icon type="fontisto" name="doctor" color="white" />
+            <Text style={{ fontSize: 12, color: "white" }}>Find Doctor</Text>
+          </TouchableOpacity>
+        ) : null}
+        {userDetail.photoURL == "patient" || userDetail.photoURL == "doctor" ? (
           <TouchableOpacity
             style={styles.button}
             onPress={() =>
               props.navigation.navigate("ChatList", {
-                user: user,
+                //user: user,
               })
             }
           >
             <Icon type="fontisto" name="hipchat" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>
-              {user.photoURL !== "doctor"
-                ? "Consult your doctor"
-                : "Chat History"}
-            </Text>
+            <Text style={{ fontSize: 12, color: "white" }}>Chat History</Text>
           </TouchableOpacity>
-        </View>
-        <View style={styles.buttons2}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              props.navigation.navigate(
-                userDetail.photoURL === "doctor" ? "PatientList" : "UserDetails"
-              );
-            }}
-          >
-            <Icon type="font-awesome-5" name="book-medical" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>
-              {user.photoURL !== "doctor"
-                ? "Profile"
-                : "Patients Medical History"}
-            </Text>
-          </TouchableOpacity>
+        ) : null}
 
-          <TouchableOpacity style={styles.button} onPress={fetchAPI}>
-            <Icon type="font-awesome" name="ambulance" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>Call Ambulance</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            props.navigation.navigate(
+              userDetail.photoURL === "doctor" ? "PatientList" : "UserDetails"
+            );
+          }}
+        >
+          <Icon type="font-awesome-5" name="book-medical" color="white" />
+          <Text style={{ fontSize: 12, color: "white" }}>
+            {userDetail.photoURL == "patient"
+              ? "Profile"
+              : "Patients Medical History"}
+          </Text>
+        </TouchableOpacity>
+        {userDetail.photoURL == "patient" ? (
+          <>
+            <TouchableOpacity style={styles.button} onPress={fetchAPI}>
+              <Icon type="font-awesome" name="ambulance" color="white" />
+              <Text style={{ fontSize: 12, color: "white" }}>
+                Call Ambulance
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <Icon type="font-awesome-5" name="clinic-medical" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>Find Pharmacy</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity style={styles.button}>
+              <Icon type="font-awesome-5" name="clinic-medical" color="white" />
+              <Text style={{ fontSize: 12, color: "white" }}>
+                Find Pharmacy
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : null}
       </View>
     </View>
   );
@@ -343,6 +361,7 @@ const styles = StyleSheet.create({
     paddingTop: "15%",
     justifyContent: "space-between",
     backgroundColor: "white",
+    height: "100%",
   },
   container2: {
     display: "flex",
@@ -367,8 +386,8 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    width: "30%",
+    justifyContent: "center",
+    width: "50%",
   },
   searchBar: {
     borderRadius: 20,
@@ -394,37 +413,36 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: "10%",
     zIndex: -1,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   buttonsContainer: {
     display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    marginTop: "5%",
-  },
-  buttons1: {
-    display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    height: "25%",
-  },
-  buttons2: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    height: "25%",
-    marginTop: 20,
+    justifyContent: "center",
+    flexWrap: "wrap",
+    marginHorizontal: 5,
+    marginVertical: 15,
+    width: "100%",
   },
   button: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     backgroundColor: "#C84771",
-    justifyContent: "center",
+    justifyContent: "space-between",
     width: "30%",
-    height: "100%",
     borderRadius: 15,
     marginHorizontal: 5,
+    marginVertical: 5,
+    paddingVertical: 30,
   },
   settings: {
     display: "flex",

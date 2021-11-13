@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useContext} from "react";
 import firebase from "firebase/app";
 import { firebaseConfig } from "./src/config/config";
 import {
@@ -13,7 +13,6 @@ import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { navigationRef, navigate } from "./RootNavigation";
 import {
   createStackNavigator,
-  HeaderBackButton,
 } from "@react-navigation/stack";
 import { Button, Icon } from "react-native-elements";
 
@@ -25,17 +24,18 @@ import Bookings from "./src/screens/Bookings";
 import BookAppointments from "./src/screens/BookAppointments";
 import Test from "./src/screens/Test";
 import Doctor from "./src/screens/Doctor";
-import DoctorDetails from "./src/screens/UserDetails";
 import ChatList from "./src/screens/ChatList";
 import Chat from "./src/screens/Chat";
 import Loading from "./src/screens/Loading";
 import UserDetails from "./src/screens/UserDetails";
 import DoctorRegister from "./src/screens/DoctorRegister";
 import PatientHistory from "./src/screens/PatientHistory";
-import { LoginProvider } from "./src/context/LoginContext";
+import LoginContext, { LoginProvider } from "./src/context/LoginContext";
 import MeetingRoom from "./src/screens/MeetingRoom";
 import CameraRoom from "./src/screens/CameraRoom";
 import PatientsList from "./src/screens/PatientsList";
+import Hospital from "./src/screens/Hospital";
+import HospitalRegister from "./src/screens/HospitalRegister";
 
 let firebaseAppDefined = false;
 
@@ -58,6 +58,7 @@ setInterval(() => {
 
 const App = (props) => {
   const Stack = createStackNavigator();
+  const {userDetail} = useContext(LoginContext)
   const myTheme = {
     ...DefaultTheme,
     colors: {
@@ -77,6 +78,7 @@ const App = (props) => {
                 headerStyle: { backgroundColor: myTheme.colors.secondary },
                 headerTitleAlign: "center",
                 headerBackTitleStyle: { marginBottom: "40%" },
+                
               }
             : {
                 headerTitleStyle: { fontWeight: "bold" },
@@ -124,6 +126,26 @@ const App = (props) => {
           }}
         />
         <Stack.Screen
+          name="HospitalRegister"
+          component={HospitalRegister}
+          options={{
+            headerShown: true,
+            headerTitle: "Register",
+            headerLeft: () => (
+              <Button
+                title="Back"
+                type="clear"
+                onPress={() => navigate("Login")}
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="Dashboard"
+          component={DashBoard}
+          options={{ gestureEnabled: false, headerShown: false }}
+        />
+        <Stack.Screen
           name="UserDetails"
           component={UserDetails}
           options={{
@@ -137,11 +159,7 @@ const App = (props) => {
             ),
           }}
         />
-        <Stack.Screen
-          name="Dashboard"
-          component={DashBoard}
-          options={{ gestureEnabled: false, headerShown: false }}
-        />
+
         {/* <Stack.Screen name="DoctorDashboard" component={DoctorDashboard} options={{ headerShown: false }} /> */}
         <Stack.Screen
           name="Bookings"
@@ -164,6 +182,19 @@ const App = (props) => {
           options={{
             headerShown: true,
             headerTitle: "Book Appointment",
+            headerLeft: () => (
+              <Button
+                title="Back"
+                type="clear"
+                onPress={() => navigate("Dashboard")}
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="Hospital"
+          component={Hospital}
+          options={{
             headerLeft: () => (
               <Button
                 title="Back"
@@ -210,7 +241,7 @@ const App = (props) => {
           component={Chat}
           options={({ route }) => ({
             title:
-              route.params.user.photoURL === "patient"
+              userDetail.photoURL === "patient"
                 ? route.params.doctor
                 : route.params.patientName,
             headerLeft: () => (
