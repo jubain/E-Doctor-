@@ -1,19 +1,15 @@
-import React,{useContext} from "react";
+import React, { useContext } from "react";
 import firebase from "firebase/app";
 import { firebaseConfig } from "./src/config/config";
 import {
   StyleSheet,
-  Text,
   View,
   Platform,
   Dimensions,
-  Linking,
 } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { navigationRef, navigate } from "./RootNavigation";
-import {
-  createStackNavigator,
-} from "@react-navigation/stack";
+import { createStackNavigator } from "@react-navigation/stack";
 import { Button, Icon } from "react-native-elements";
 
 import Login from "./src/screens/Login";
@@ -36,6 +32,8 @@ import CameraRoom from "./src/screens/CameraRoom";
 import PatientsList from "./src/screens/PatientsList";
 import Hospital from "./src/screens/Hospital";
 import HospitalRegister from "./src/screens/HospitalRegister";
+import Account from "./src/screens/Account";
+import DoctorList from "./src/screens/DoctorList";
 
 let firebaseAppDefined = false;
 
@@ -58,7 +56,7 @@ setInterval(() => {
 
 const App = (props) => {
   const Stack = createStackNavigator();
-  const {userDetail} = useContext(LoginContext)
+  const { userDetail } = useContext(LoginContext);
   const myTheme = {
     ...DefaultTheme,
     colors: {
@@ -78,7 +76,6 @@ const App = (props) => {
                 headerStyle: { backgroundColor: myTheme.colors.secondary },
                 headerTitleAlign: "center",
                 headerBackTitleStyle: { marginBottom: "40%" },
-                
               }
             : {
                 headerTitleStyle: { fontWeight: "bold" },
@@ -86,13 +83,17 @@ const App = (props) => {
               }
         }
       >
-        <Stack.Screen name="Loading" component={Loading} />
+        <Stack.Screen name="Loading" component={Loading} 
+        options={{
+          headerShown:false
+        }}
+        />
         <Stack.Screen
           name="Login"
           component={Login}
           options={{
-            headerLeft: () => <Button type="clear" />,
             gestureEnabled: false,
+            headerShown:false
           }}
         />
         <Stack.Screen
@@ -192,6 +193,36 @@ const App = (props) => {
           }}
         />
         <Stack.Screen
+          name="DoctorList"
+          component={DoctorList}
+          options={{
+            headerShown: true,
+            headerTitle: "Doctors",
+            headerLeft: () => (
+              <Button
+                title="Back"
+                type="clear"
+                onPress={() => navigate("Dashboard")}
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="Account"
+          component={Account}
+          options={{
+            headerShown: true,
+            headerTitle: "Account",
+            headerLeft: () => (
+              <Button
+                title="Back"
+                type="clear"
+                onPress={() => navigate("Dashboard")}
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
           name="Hospital"
           component={Hospital}
           options={{
@@ -219,7 +250,6 @@ const App = (props) => {
             ),
           }}
         />
-
         <Stack.Screen
           name="ChatList"
           component={ChatList}

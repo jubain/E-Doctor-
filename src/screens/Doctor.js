@@ -5,8 +5,9 @@ import {
   Dimensions,
   FlatList,
   Alert,
+  StyleSheet,
 } from "react-native";
-import { Avatar, Text, Button, ListItem } from "react-native-elements";
+import { Avatar, Text, Button, ListItem, Input } from "react-native-elements";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { useTheme } from "@react-navigation/native";
 import firebase from "firebase";
@@ -19,7 +20,6 @@ function Doctor(props) {
   const db = firebase.firestore();
   const [booked, setbooked] = useState(false);
 
-  const [bookButtonTitle, setbookButtonTitle] = useState("Book");
   const { colors } = useTheme();
   const [availableTimes, setavailableTimes] = useState();
   const [userSelectedTime, setuserSelectedTime] = useState("Select Time");
@@ -27,6 +27,10 @@ function Doctor(props) {
   const [bookingExist, setbookingExist] = useState(false);
   const [doctorDetails, setdoctorDetails] = useState();
   const { userDetail } = useContext(LoginContext);
+  const [bookButtonTitle, setbookButtonTitle] = useState("Book");
+  const [newavailableTimes, setnewavailableTimes] = useState({
+    time: "",
+  });
 
   // Date picker
   const [date, setDate] = useState(new Date());
@@ -63,7 +67,7 @@ function Doctor(props) {
   const createChatBox = (doctorEmail, patientEmail) => {
     db.collection("chats").add({
       contents: [],
-      doctorEmail:  doctor.email,
+      doctorEmail: doctor.email,
       patientEmail: userDetail.email,
       date: userSelectedDate.toString().slice(4, 15),
       time: userSelectedTime,
@@ -133,7 +137,6 @@ function Doctor(props) {
   };
 
   const doBooking = () => {
-    
     db.collection("bookings")
       .add({
         patientName: userDetail.displayName,
@@ -160,6 +163,27 @@ function Doctor(props) {
         console.error("Error adding document: ", error);
       });
   };
+  const updateChange = () => {
+    db.collection("doctors")
+      .where("email", "==", doctor.email)
+      .get()
+      .then((querySnapshot) => {
+        if (querySnapshot.empty) {
+          console.log("No data");
+        } else {
+          querySnapshot.forEach((doc) => {
+            db.collection("doctors")
+              .doc(doc.id)
+              .update({
+                availableTimes: newavailableTimes.time.split(','),
+              });
+          });
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const Booking = () => (
     <View>
@@ -169,7 +193,7 @@ function Doctor(props) {
           justifyContent: "space-evenly",
           alignItems: "center",
           flexDirection: "row",
-          paddingTop:10
+          paddingTop: 10,
         }}
       >
         <Text>Time:</Text>
@@ -180,8 +204,12 @@ function Doctor(props) {
             onSelect={(selectedItem, index) => {
               setuserSelectedTime(selectedItem);
             }}
-            buttonStyle={{ borderRadius: 5, width:150,backgroundColor:colors.secondary }}
-            buttonTextStyle={{ fontSize: 15,color:'white' }}
+            buttonStyle={{
+              borderRadius: 5,
+              width: 150,
+              backgroundColor: colors.secondary,
+            }}
+            buttonTextStyle={{ fontSize: 15, color: "white" }}
             rowTextStyle={{ fontSize: 15 }}
           />
         ) : null}
@@ -194,18 +222,36 @@ function Doctor(props) {
           flexDirection: "row",
         }}
       >
-        <Text>Date:</Text>
-        {show != true && (
-          <Button
-            title={userSelectedDate}
-            onPress={() => {
-              showDatepicker();
-            }}
-            style={{width:150,paddingTop:10}}
-            titleStyle={{fontSize:15}}
-            buttonStyle={{backgroundColor:colors.secondary,height:50,borderRadius:5}}
-          ></Button>
+        <Text>{userDetail.photoURL == "hospital" ? "New Time:" : "Date"}</Text>
+        {userDetail.photoURL != "hospital" ? (
+          show != true && (
+            <Button
+              title={userSelectedDate}
+              onPress={() => {
+                showDatepicker();
+              }}
+              style={{ width: 150, paddingTop: 10 }}
+              titleStyle={{ fontSize: 15 }}
+              buttonStyle={{
+                backgroundColor: colors.secondary,
+                height: 50,
+                borderRadius: 5,
+              }}
+            ></Button>
+          )
+        ) : (
+          <Input
+            autoCapitalize="none"
+            autoCompleteType="off"
+            autoCorrect={false}
+            containerStyle={styles.inputContainer}
+            inputStyle={styles.input}
+            placeholder="9:00,5:00..."
+            value={newavailableTimes.time}
+            onChangeText={(text) => setnewavailableTimes({ time: text })}
+          />
         )}
+
         {show && (
           <DateTimePicker
             testID="dateTimePicker"
@@ -214,7 +260,11 @@ function Doctor(props) {
             is24Hour={true}
             display="default"
             onChange={onChange}
-            style={{height:50, width:150, backgroundColor: "rgb(242,242,242)" }}
+            style={{
+              height: 50,
+              width: 150,
+              backgroundColor: "rgb(242,242,242)",
+            }}
             minimumDate={date}
           />
         )}
@@ -283,8 +333,10 @@ function Doctor(props) {
           }}
         />
         <Text h4>{`Dr ${doctor.fName}`}</Text>
-        <Text h4 h4Style={{fontSize:16,paddingVertical:10}}>{doctor.faculty}</Text>
-        <Text style={{paddingBottom:10}}>{doctor.hospital}</Text>
+        <Text h4 h4Style={{ fontSize: 16, paddingVertical: 10 }}>
+          {doctor.faculty}
+        </Text>
+        <Text style={{ paddingBottom: 10 }}>{doctor.hospital}</Text>
       </View>
       <TabView
         navigationState={{ index, routes }}
@@ -303,14 +355,26 @@ function Doctor(props) {
         <Button
           disabled={booked === true ? true : false}
           buttonStyle={{ paddingBottom: 35, backgroundColor: colors.secondary }}
-          title={bookButtonTitle}
+          title={userDetail.photoURL == "hospital" ? "Save" : bookButtonTitle}
           onPress={() => {
-            doBooking();
+            userDetail.photoURL != "hospital" ? doBooking() : updateChange();
           }}
         />
       </View>
     </View>
   );
 }
+const styles = StyleSheet.create({
+  inputContainer: {
+    width: "45%",
+    paddingTop: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 10,
+    fontSize: 15,
+    paddingLeft: 5,
+  },
+});
 
 export default Doctor;

@@ -7,6 +7,8 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.2.0",
+    "@expo-google-fonts/montserrat": "^0.2.0",
     "@expo/ngrok": "^2.4.3",
     "@react-native-community/checkbox": "^0.5.8",
     "@react-native-community/datetimepicker": "3.2.0",
@@ -19,8 +21,10 @@
     "axios": "^0.22.0",
     "core-js": "^3.14.0",
     "expo": "~41.0.1",
+    "expo-blur": "~9.0.3",
     "expo-camera": "~11.0.2",
     "expo-dev-client": "^0.6.3",
+    "expo-font": "~9.1.0",
     "expo-linear-gradient": "~9.1.0",
     "expo-location": "~12.0.4",
     "expo-splash-screen": "~0.10.2",

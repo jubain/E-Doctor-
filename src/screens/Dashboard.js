@@ -7,12 +7,11 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import {
   Avatar,
-  Button,
   Icon,
-  Text,
   SearchBar,
   ListItem,
   Overlay,
@@ -21,6 +20,9 @@ import firebase from "firebase";
 import * as Location from "expo-location";
 import axios from "axios";
 import LoginContext from "../context/LoginContext";
+import CustomText from "../components/CustomText";
+import CustomButton from "../components/CustomButton";
+import LoadingIndicator from "../components/LoadingIndicator";
 
 var db = firebase.firestore();
 
@@ -34,6 +36,7 @@ function DashBoard(props) {
   const [searchBarClick, setsearchBarClick] = useState("false");
   const [userTypedHospital, setuserTypedHospital] = useState();
   const [loading, setloading] = useState(false);
+  const [signoutLoading, setsignoutLoading] = useState(false);
   // Theme
   const { colors } = useTheme();
   // End theme
@@ -138,41 +141,66 @@ function DashBoard(props) {
           size="large"
         />
         <Icon type="feather" name="settings" onPress={toggleOverlay} />
-        <Overlay isVisible={visible} onBackdropPress={toggleOverlay}>
-          <View style={styles.settings}>
-            <Icon
-              name="sign-out"
-              type="font-awesome"
-              onPress={() => {
-                firebase
-                  .auth()
-                  .signOut()
-                  .then(() => {
+        <Overlay
+          isVisible={visible}
+          onBackdropPress={toggleOverlay}
+          overlayStyle={styles.overlay}
+        >
+          <CustomButton
+            title="    Account"
+            buttonStyle={styles.settingButtons}
+            onPress={() => {
+              setVisible(false);
+              props.navigation.navigate("Account");
+            }}
+            icon={
+              <Icon name="account-circle" type="material-icons" color="white" />
+            }
+          />
+          <CustomButton
+            title="    Signout"
+            buttonStyle={styles.settingButtons}
+            onPress={() => {
+              setsignoutLoading(true);
+              firebase
+                .auth()
+                .signOut()
+                .then(() => {
+                  setTimeout(() => {
+                    setsignoutLoading(false);
                     props.navigation.navigate("Login");
-                  })
-                  .catch((error) => {
-                    console.log(error);
-                  });
-              }}
-            />
-            <Text>Sign Out</Text>
-          </View>
+                  }, 1000);
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            }}
+            icon={
+              signoutLoading ? (
+                <LoadingIndicator size="small" />
+              ) : (
+                <Icon name="logout" type="ant-design" color="white" />
+              )
+            }
+          />
         </Overlay>
       </View>
       <View style={styles.greeting}>
-        {userDetail.photoURL !== "hospital" ? (
-          <Text h4>
-            Hello,
-            {userDetail.photoURL == "doctor" ? " Dr" : ""}
-          </Text>
-        ) : null}
-
-        <View style={styles.userAndPill}>
-          <Text h3>
-            {userDetail.photoURL == "doctor"
-              ? userDetail.fName
-              : userDetail.displayName}
-          </Text>
+        <CustomText
+          word={`Hello, ${userDetail.photoURL == "doctor" ? "Dr" : ""}`}
+          size={18}
+          style={{ color: "black", fontSize: 18 }}
+        />
+        <View style={{ display: "flex", flexDirection: "row" }}>
+          <CustomText
+            word={`${
+              userDetail.photoURL == "doctor"
+                ? userDetail.fName
+                : `${userDetail.displayName}  `
+            }`}
+            size={25}
+            style={{ color: "black", fontSize: 20 }}
+          />
           <Icon
             type="font-awesome-5"
             name="pills"
@@ -189,7 +217,6 @@ function DashBoard(props) {
             inputStyle={{
               backgroundColor: "white",
               color: "black",
-              borderWidth: 0,
             }}
             inputContainerStyle={{ backgroundColor: "white" }}
             onChangeText={(text) => {
@@ -222,86 +249,85 @@ function DashBoard(props) {
         </View>
       ) : null}
 
-      {userDetail.photoURL == "patient" || userDetail.photoURL == "doctor" ? (
-        <View style={styles.card}>
+      <View style={styles.card}>
+        <View
+          style={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           <View
             style={{
+              width: "85%",
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
             }}
           >
-            <View
-              style={{
-                width: "85%",
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-              }}
-            >
-              <Text
-                style={{ fontWeight: "bold", fontSize: 18, color: "white" }}
-              >
-                Stay Safe!
-              </Text>
-              <View>
-                <Text style={{ color: "white" }}>
-                  Have you booked your vaccine yet?
-                </Text>
-                <Text style={{ color: "white" }}>
-                  If not book it quickly and
-                </Text>
-                <Text style={{ color: "white" }}>
-                  remeber to wear mask all the time.
-                </Text>
-              </View>
+            <CustomText
+              word="Stay Safe"
+              size={18}
+              weight="bold"
+              color="white"
+              padding={10}
+            />
+            <View>
+              <CustomText
+                word="Have you booked your vaccine yet?"
+                color="white"
+              />
+              <CustomText word=" If not book it quickly and" color="white" />
+              <CustomText
+                word="remeber to wear mask all the time."
+                color="white"
+              />
             </View>
           </View>
-          <Image
-            source={require("../../public/removemask.png")}
-            style={{ width: 100, height: 100 }}
-          />
         </View>
-      ) : null}
+        <Image
+          source={require("../../public/removemask.png")}
+          style={{ width: 100, height: 100 }}
+        />
+      </View>
 
-      <View
-        style={{ alignSelf: "stretch", paddingHorizontal: 20, marginTop: "5%" }}
-      >
-        <Text style={{ fontWeight: "bold", fontSize: 18 }}>
-          What do you need?
-        </Text>
+      <View style={{ alignSelf: "stretch", paddingHorizontal: 20 }}>
+        <CustomText word="What do you need?" size={18} weight="bold" />
       </View>
       <View style={styles.buttonsContainer}>
-        {userDetail.photoURL == "doctor" || userDetail.photoURL == "patient" ? (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              props.navigation.navigate("Bookings", {
-                // userEmail: user.email,
-                // user: user,
-              })
-            }
-          >
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            props.navigation.navigate(
+              userDetail.photoURL == "hospital" ? "DoctorList" : "Bookings"
+            )
+          }
+        >
+          {userDetail.photoURL == "hospital" ? (
+            <Icon type="fontisto" name="doctor" color="white" />
+          ) : (
             <Icon type="ant-design" name="book" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>
-              {userDetail.photoURL == "patient" ||
-              userDetail.photoURL == "doctor"
-                ? "Bookings"
-                : "Patient List"}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
+          )}
+
+          <CustomText
+            word={userDetail.photoURL === !"hospital" ? "Bookings" : "Doctors"}
+            color="white"
+            padding={7}
+            size={12}
+          />
+        </TouchableOpacity>
 
         {userDetail.photoURL == "patient" ? (
           <TouchableOpacity
             style={styles.button}
-            onPress={() =>
-              props.navigation.navigate("Book", {
-                //user: user,
-              })
-            }
+            onPress={() => props.navigation.navigate("Book", {})}
           >
             <Icon type="fontisto" name="doctor" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>Find Doctor</Text>
+            <CustomText
+              word="Find Doctor"
+              color="white"
+              padding={7}
+              size={12}
+            />
           </TouchableOpacity>
         ) : null}
         {userDetail.photoURL == "patient" || userDetail.photoURL == "doctor" ? (
@@ -314,7 +340,12 @@ function DashBoard(props) {
             }
           >
             <Icon type="fontisto" name="hipchat" color="white" />
-            <Text style={{ fontSize: 12, color: "white" }}>Chat History</Text>
+            <CustomText
+              word="Chat History"
+              color="white"
+              padding={7}
+              size={12}
+            />
           </TouchableOpacity>
         ) : null}
 
@@ -322,31 +353,34 @@ function DashBoard(props) {
           style={styles.button}
           onPress={() => {
             props.navigation.navigate(
-              userDetail.photoURL === "doctor" ? "PatientList" : "UserDetails"
+              userDetail.photoURL === "doctor" ? "PatientList" : userDetail.photoURL === "patient"?"UserDetails":"HospitalPatientList"
             );
           }}
         >
           <Icon type="font-awesome-5" name="book-medical" color="white" />
-          <Text style={{ fontSize: 12, color: "white" }}>
-            {userDetail.photoURL == "patient"
-              ? "Profile"
-              : "Patients Medical History"}
-          </Text>
+          <CustomText
+            word={
+              userDetail.photoURL == "patient"
+                ? "Profile"
+                : userDetail.photoURL === "doctor"
+                ? "Patients History"
+                : "Patients"
+            }
+            color="white"
+            padding={7}
+            style={{ paddingHorizontal: 1 }}
+          />
         </TouchableOpacity>
         {userDetail.photoURL == "patient" ? (
           <>
             <TouchableOpacity style={styles.button} onPress={fetchAPI}>
               <Icon type="font-awesome" name="ambulance" color="white" />
-              <Text style={{ fontSize: 12, color: "white" }}>
-                Call Ambulance
-              </Text>
+              <CustomText word="Call Ambulance" color="white" padding={7} />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.button}>
               <Icon type="font-awesome-5" name="clinic-medical" color="white" />
-              <Text style={{ fontSize: 12, color: "white" }}>
-                Find Pharmacy
-              </Text>
+              <CustomText word="Find Pharmacy" color="white" padding={7} />
             </TouchableOpacity>
           </>
         ) : null}
@@ -359,15 +393,14 @@ const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     paddingTop: "15%",
-    justifyContent: "space-between",
+    justifyContent: "center",
     backgroundColor: "white",
-    height: "100%",
   },
   container2: {
     display: "flex",
     alignItems: "center",
-    paddingTop: "7%",
-    justifyContent: "space-between",
+    paddingTop: "20%",
+    justifyContent: "center",
     backgroundColor: "white",
   },
   avatar: {
@@ -380,7 +413,7 @@ const styles = StyleSheet.create({
   greeting: {
     alignSelf: "stretch",
     paddingHorizontal: 20,
-    marginTop: "5%",
+    paddingVertical: 50,
   },
   userAndPill: {
     display: "flex",
@@ -401,17 +434,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8.3,
     marginTop: "5%",
     borderWidth: 0,
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
   },
   card: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
     width: "90%",
-    height: "20%",
+    height: "30%",
     justifyContent: "center",
     backgroundColor: "#C84771",
     borderRadius: 20,
-    marginTop: "10%",
     zIndex: -1,
     shadowColor: "#000",
     shadowOffset: {
@@ -430,7 +464,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginHorizontal: 5,
     marginVertical: 15,
-    width: "100%",
   },
   button: {
     display: "flex",
@@ -442,13 +475,29 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginHorizontal: 5,
     marginVertical: 5,
-    paddingVertical: 30,
+    paddingVertical: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+    fontFamily: "Montserrat_400Regular",
   },
-  settings: {
+  overlay: {
     display: "flex",
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-evenly",
     alignItems: "center",
+    width: "80%",
+    height: 200,
+    borderRadius: 10,
+  },
+  settingButtons: {
+    width: "100%",
+    height: 50,
   },
 });
 

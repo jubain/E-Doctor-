@@ -1,15 +1,13 @@
-import React, { useState, useContext } from "react";
-import { StyleSheet, View, StatusBar } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import { StyleSheet, View } from "react-native";
 import { Text, Input, Button } from "react-native-elements";
 import { useTheme } from "@react-navigation/native";
 import { Image } from "react-native";
 import Icon from "react-native-vector-icons/AntDesign";
-import {
-  FacebookSocialButton,
-  GoogleSocialButton,
-} from "react-native-social-buttons";
 import firebase from "firebase";
 import LoginContext from "../context/LoginContext";
+import CustomButton from "../components/CustomButton";
+import LoadingIndicator from "../components/LoadingIndicator";
 
 function Login(props) {
   const [inputs, setinputs] = useState({
@@ -19,17 +17,16 @@ function Login(props) {
   var db = firebase.firestore();
   const [errorMessage, seterrorMessage] = useState("");
   const { getCurrentUser } = useContext(LoginContext);
+  const [loading, setloading] = useState(false);
 
   const onPressLogin = () => {
     if (inputs.email !== "" || inputs.password !== "") {
+      setloading(true);
       firebase
         .auth()
         .signInWithEmailAndPassword(inputs.email, inputs.password)
         .then((userCredential) => {
-          // Signed in
-          //var user = userCredential.user;
-          props.navigation.navigate("Loading");
-          // ...
+            props.navigation.navigate("Loading");
         })
         .catch((error) => {
           var errorCode = error.code;
@@ -41,21 +38,40 @@ function Login(props) {
     }
   };
   const doctorLogin = () => {
-    db.collection("doctors")
-      .where("email", "==", inputs.email)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          getCurrentUser(doc.data());
-          props.navigation.navigate("Dashboard");
+    if (inputs.email !== "" || inputs.password !== "") {
+      setloading(true);
+      db.collection("doctors")
+        .where("email", "==", inputs.email)
+        .get()
+        .then((querySnapshot) => {
+          setTimeout(() => {
+            if (querySnapshot.empty) {
+              alert("Invalid email or password. Please try again.");
+              setloading(false);
+            } else {
+              querySnapshot.forEach((doc) => {
+                setloading(false);
+                getCurrentUser(doc.data());
+                props.navigation.navigate("Dashboard");
+              });
+            }
+          }, 1500);
+        })
+        .catch((error) => {
+          console.log(error);
         });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    } else {
+      seterrorMessage("Empty Field");
+    }
   };
 
   const { colors } = useTheme();
+  useEffect(() => {
+    setinputs({
+      email: "",
+      password: "",
+    });
+  }, []);
 
   return (
     <View
@@ -64,12 +80,13 @@ function Login(props) {
         flexDirection: "column",
         alignItems: "center",
         backgroundColor: colors.primary,
+        justifyContent: "center",
         height: "100%",
       }}
     >
       <Image
         source={require("../../public/logo.png")}
-        style={{ width: 230, height: 230 }}
+        style={{ width: 250, height: 250 }}
       />
 
       <View style={styles.container}>
@@ -80,6 +97,7 @@ function Login(props) {
             placeholder="Email or Username"
             errorMessage={errorMessage}
             value={inputs.email}
+            inputContainerStyle={styles.input}
             style={{ fontSize: 15 }}
             onChangeText={(text) => setinputs({ ...inputs, email: text })}
             leftIcon={<Icon name="user" size={24} color="black" />}
@@ -92,6 +110,7 @@ function Login(props) {
             style={{ fontSize: 15 }}
             errorMessage={errorMessage}
             value={inputs.password}
+            inputContainerStyle={styles.input}
             onChangeText={(text) => setinputs({ ...inputs, password: text })}
             secureTextEntry={true}
             leftIcon={{ type: "antdesign", name: "key" }}
@@ -102,7 +121,12 @@ function Login(props) {
 
           <View style={styles.buttons}>
             <View style={styles.button}>
-              <Button
+              <CustomButton
+                title="Login"
+                buttonStyle={styles.loginAndRegister}
+                onPress={onPressLogin}
+              />
+              {/* <Button
                 title="Login"
                 buttonStyle={{
                   backgroundColor: "#C84771",
@@ -110,7 +134,7 @@ function Login(props) {
                   borderRadius: 20,
                 }}
                 onPress={onPressLogin}
-              />
+              /> */}
             </View>
             <Text
               h5
@@ -119,7 +143,12 @@ function Login(props) {
               Or
             </Text>
             <View style={styles.button}>
-              <Button
+              <CustomButton
+                title={loading ? <LoadingIndicator /> : "Doctor Login"}
+                buttonStyle={styles.loginAndRegister}
+                onPress={doctorLogin}
+              />
+              {/* <Button
                 title="Login as a Doctor"
                 buttonStyle={{
                   backgroundColor: "#C84771",
@@ -127,7 +156,7 @@ function Login(props) {
                   borderRadius: 20,
                 }}
                 onPress={doctorLogin}
-              />
+              /> */}
             </View>
             <View style={styles.registerLink}>
               <Text style={{ fontSize: 15 }}>Don't have an Account?</Text>
@@ -162,8 +191,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 370,
   },
+  input: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingLeft: 10,
+  },
   inputs: {
     alignSelf: "stretch",
+  },
+  loginAndRegister: {
+    width: 350,
+    paddingVertical: 15,
+    borderRadius: 10,
   },
   buttons: {
     display: "flex",
