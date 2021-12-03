@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Text, Input, Button } from "react-native-elements";
 import { useTheme } from "@react-navigation/native";
 import { Image } from "react-native";
@@ -26,11 +26,13 @@ function Login(props) {
         .auth()
         .signInWithEmailAndPassword(inputs.email, inputs.password)
         .then((userCredential) => {
+          setloading(false)
             props.navigation.navigate("Loading");
         })
         .catch((error) => {
           var errorCode = error.code;
           var errorMessage = error.message;
+          setloading(false)
           alert(error);
         });
     } else {
@@ -46,7 +48,7 @@ function Login(props) {
         .then((querySnapshot) => {
           setTimeout(() => {
             if (querySnapshot.empty) {
-              alert("Invalid email or password. Please try again.");
+              seterrorMessage("Invalid email or password.")
               setloading(false);
             } else {
               querySnapshot.forEach((doc) => {
@@ -55,7 +57,7 @@ function Login(props) {
                 props.navigation.navigate("Dashboard");
               });
             }
-          }, 1500);
+          }, 1000);
         })
         .catch((error) => {
           console.log(error);
@@ -118,7 +120,7 @@ function Login(props) {
               seterrorMessage("");
             }}
           />
-
+  {loading===true?<ActivityIndicator size="large" style={{position:'absolute',left:'50%'}}/>:null}
           <View style={styles.buttons}>
             <View style={styles.button}>
               <CustomButton
@@ -144,7 +146,7 @@ function Login(props) {
             </Text>
             <View style={styles.button}>
               <CustomButton
-                title={loading ? <LoadingIndicator /> : "Doctor Login"}
+                title= "Doctor Login"
                 buttonStyle={styles.loginAndRegister}
                 onPress={doctorLogin}
               />

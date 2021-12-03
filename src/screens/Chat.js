@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Alert, FlatList, Platform } from "react-native";
+import { Alert, FlatList} from "react-native";
 import {
   StyleSheet,
   View,
-  TouchableOpacity,
   ImageBackground,
-  KeyboardAvoidingView,
 } from "react-native";
-import { ListItem, Avatar, Button } from "react-native-elements";
 import { TextInput, Text } from "react-native";
 import firebase from "firebase";
 import LoginContext from "../context/LoginContext";
+import CustomButton from "../components/CustomButton";
+import CustomText from "../components/CustomText";
+import { useTheme } from "@react-navigation/native";
 
 function Chat(props) {
   const { userDetail } = useContext(LoginContext);
@@ -19,10 +19,10 @@ function Chat(props) {
   var patient = props.route.params.patientEmail;
   const date = props.route.params.date;
   const time = props.route.params.time;
-
-
+  var item = props.route.params.item;
   const [messageAndChat, setmessageAndChat] = useState();
   const db = firebase.firestore();
+  const {colors} = useTheme()
 
   const [textFieldTouched, settextFieldTouched] = useState(false);
 
@@ -32,18 +32,21 @@ function Chat(props) {
         style={[
           styles.messageBox,
           {
-            backgroundColor: item.userId !== userDetail.email ? "#C84771" : "#BEBDB8",
+            backgroundColor:
+              item.userId !== userDetail.email ? "#C84771" : colors.green,
             marginLeft: item.userId !== userDetail.email ? 50 : 0,
             marginRight: item.userId !== userDetail.email ? 0 : 50,
           },
         ]}
       >
         {item.userId !== userDetail.email && (
-          <Text style={styles.name}>{item.userId}</Text>
+          <CustomText style={styles.name} word={item.userId}/>
+          // <Text style={styles.name}>{item.userId}</Text>
         )}
-        <Text selectable={true} style={styles.message}>
+        <CustomText word={item.message} style={styles.message}/>
+        {/* <Text selectable={true} style={styles.message}>
           {item.message}
-        </Text>
+        </Text> */}
         {/* {item.userId !== 'Jubeen' && <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>} */}
       </View>
     </View>
@@ -65,6 +68,7 @@ function Chat(props) {
         )
         .get()
         .then((querySnapshot) => {
+          getChatData();
           querySnapshot.forEach((doc) => {
             db.collection("chats")
               .doc(doc.id)
@@ -78,37 +82,6 @@ function Chat(props) {
               .then(() => {
                 setmessage("");
               });
-            // if (user.photoURL === 'doctor') {
-            //     if (doc.data().patientEmail === patient) {
-            //         db.collection('chats').doc(`${doc.id}`)
-            //             .update({
-            //                 "contents": firebase.firestore.FieldValue.arrayUnion({
-            //                     id: `${Math.random()}`,
-            //                     message: message,
-            //                     userId: props.route.params.user.email
-            //                 })
-            //             }).then(() => {
-            //                 setmessage('')
-            //             }).catch(err => {
-            //                 console.log(err)
-            //             })
-            //     }
-            // } else {
-            //     if (doc.data().doctorEmail === doctor) {
-            //         db.collection('chats').doc(`${doc.id}`)
-            //             .update({
-            //                 "contents": firebase.firestore.FieldValue.arrayUnion({
-            //                     id: `${Math.random()}`,
-            //                     message: message,
-            //                     userId: props.route.params.user.email
-            //                 })
-            //             }).then(() => {
-            //                 setmessage('')
-            //             }).catch(err => {
-            //                 console.log(err)
-            //             })
-            //     }
-            // }
           });
         })
         .catch((error) => {
@@ -119,28 +92,8 @@ function Chat(props) {
     }
   };
 
-  useEffect(() => {
-    Alert.alert(
-      "Dear User",
-      "You will have 1 minutes for this chat box. After that you will be taken out from the chat room. Thank you.",
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          onPress: () => {},
-          // setTimeout(() => {
-          //     props.navigation.goBack(null)
-          // }, 10000)
-        },
-      ]
-    );
-  }, []);
-
-  setTimeout(() => {
+  const getChatData = () => {
+    console.log(date);
     db.collection("chats")
       .where(
         userDetail.photoURL === "patient" ? "patientEmail" : "doctorEmail",
@@ -157,22 +110,12 @@ function Chat(props) {
       .get()
       .then((querySnapshot) => {
         let tempArray = [];
+        if (querySnapshot.empty) {
+          console.log("empty cha");
+        }
         querySnapshot.forEach((doc) => {
-          // if (doc.exists) {
-          //     console.log('document exist')
-          // }
-          // if (user.photoURL === "doctor") {
-          //     if (doc.data().doctorEmail === user.email && doc.data().patientEmail === patient) {
-
-          //     }
-          // } else {
-          //     if (doc.data().patientEmail === user.email && doc.data().doctorEmail === doctor) {
-          //         doc.data().contents.forEach(data => {
-          //             tempArray.push(data)
-          //         })
-          //     }
-          // }
           doc.data().contents.forEach((data) => {
+            console.log(doc.data());
             tempArray.push(data);
           });
         });
@@ -181,7 +124,26 @@ function Chat(props) {
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
-  }, 500);
+  };
+
+  useEffect(() => {
+    getChatData();
+    Alert.alert(
+      "Dear User",
+      "You will have 1 minutes for this chat box. After that you will be taken out from the chat room. Thank you.",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: () => {},
+        },
+      ]
+    );
+  }, []);
 
   return (
     <ImageBackground
@@ -200,11 +162,7 @@ function Chat(props) {
       />
       <View
         style={
-          textFieldTouched === false
-            ? styles.textAndButtonContainer
-            : Platform.OS === "ios"
-            ? styles.textAndButtonContainerAfterKeyboard
-            : styles.textAndButtonContainerAfterKeyboardAndorid
+          styles.textAndButtonContainer
         }
       >
         <View style={styles.textContainer}>
@@ -215,17 +173,14 @@ function Chat(props) {
             style={{ flex: 1 }}
             placeholder="Type here..."
             onChangeText={setmessage}
-            onTouchStart={() => {
-              settextFieldTouched(true);
-            }}
+            // onTouchStart={() => {
+            //   settextFieldTouched(true);
+            // }}
             //style={textFieldTouched === true ? {} : null}
           />
         </View>
-        <Button
-          onPress={sendChat}
-          style={styles.sendButton}
-          title="Send"
-        ></Button>
+        <CustomButton title="Send" onPress={sendChat} buttonStyle={{height:'100%',borderTopRightRadius:10,borderBottomRightRadius:10}}/>
+       
       </View>
     </ImageBackground>
   );
@@ -243,14 +198,16 @@ const styles = StyleSheet.create({
     marginRight: 50,
     borderRadius: 5,
     padding: 10,
+    height:50
   },
   name: {
     fontWeight: "bold",
     color: "#C84771",
-    marginBottom: 5,
+    marginBottom: 0,
   },
   message: {
     color: "white",
+    fontSize:18
   },
   time: {
     color: "white",
@@ -263,15 +220,15 @@ const styles = StyleSheet.create({
     padding: 10,
     flex: 1.8,
     height: "100%",
-    borderRadius: 50,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 15,
   },
   textAndButtonContainer: {
-    marginHorizontal: 10,
-    marginBottom: 20,
-    height: "6%",
-    display: "flex",
-    flexDirection: "row",
-    width: "100%",
+    height:'6%',
+    marginBottom:20,
+    display:'flex',
+    flexDirection:'row',
+    paddingHorizontal:10
   },
   textAndButtonContainerAfterKeyboard: {
     marginHorizontal: 10,
@@ -288,8 +245,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sendButton: {
-    flex: 1.5,
-    height: "100%",
+    height: '100%',
   },
 });
 

@@ -1,5 +1,12 @@
-import React, { useEffect, useState,useRef } from "react";
-import { StyleSheet, View, FlatList, Linking,Button } from "react-native";
+import React, { useEffect, useState, useRef, useContext } from "react";
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Linking,
+  Button,
+  TextInput,
+} from "react-native";
 import { useTheme } from "@react-navigation/native";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import firebase from "firebase";
@@ -7,10 +14,15 @@ import {
   Avatar,
   Icon,
   Input,
+  Overlay,
   ListItem,
   Text,
+  Image,
 } from "react-native-elements";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import CustomButton from "../components/CustomButton";
+import LoginContext from "../context/LoginContext";
+import CustomText from "../components/CustomText";
 
 export default function Hospital(props) {
   const { colors } = useTheme();
@@ -21,8 +33,10 @@ export default function Hospital(props) {
   const [hospital, sethospital] = useState();
   const [modelOpen, setmodelOpen] = useState(false);
   const [userreview, setuserreview] = useState("");
+  const { userDetail } = useContext(LoginContext);
+  const [doctorList, setdoctorList] = useState();
 
-  const nameForm = useRef("")
+  const nameForm = useRef("");
 
   const getHospital = () => {
     let tempArray = [];
@@ -41,8 +55,24 @@ export default function Hospital(props) {
       });
   };
 
+  const getDoctor = () => {
+    let tempArray = [];
+    db.collection("doctors")
+      .where("hospital", "==", hospitalname)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          tempArray.push(doc.data());
+        });
+        setdoctorList(tempArray);
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
+  };
+
   const sendReview = () => {
-    const form = nameForm.current.props.title
+    const username = userDetail.displayName;
     db.collection("hospitals")
       .where("name", "==", hospitalname)
       .get()
@@ -51,10 +81,15 @@ export default function Hospital(props) {
           db.collection("hospitals")
             .doc(doc.id)
             .update({
-              reviews: firebase.firestore.FieldValue.arrayUnion(userreview),
+              reviews: firebase.firestore.FieldValue.arrayUnion({
+                username,
+                userreview,
+              }),
             })
             .then(() => {
-              console.log("successly update");
+              alert("Your review has been submitted.");
+              getHospital();
+              setuserreview("");
             });
         });
       })
@@ -74,11 +109,21 @@ export default function Hospital(props) {
           </View>
           <View style={styles.detailMiniContainer}>
             <Text style={styles.detailLabel}>Email: </Text>
-            <Text onPress={()=>Linking.openURL(`mailto:${hospital[0].email}`)} style={[styles.detail,{textDecorationLine:'underline'}]}>{hospital[0].email}</Text>
+            <Text
+              onPress={() => Linking.openURL(`mailto:${hospital[0].email}`)}
+              style={[styles.detail, { textDecorationLine: "underline" }]}
+            >
+              {hospital[0].email}
+            </Text>
           </View>
           <View style={styles.detailMiniContainer}>
             <Text style={styles.detailLabel}>Phone: </Text>
-            <Text onPress={()=>Linking.openURL(`tel:${hospital[0].phone}`)} style={[styles.detail,{textDecorationLine:'underline'}]}>{hospital[0].phone}</Text>
+            <Text
+              onPress={() => Linking.openURL(`tel:${hospital[0].phone}`)}
+              style={[styles.detail, { textDecorationLine: "underline" }]}
+            >
+              {hospital[0].phone}
+            </Text>
           </View>
           <View style={styles.detailMiniContainer}>
             <Text style={styles.detailLabel}>Location: </Text>
@@ -105,8 +150,18 @@ export default function Hospital(props) {
                     <ListItem.Title style={{ fontSize: 13 }}>
                       <Text
                         style={{ fontStyle: "italic", fontWeight: "bold" }}
-                      >{`" ${item} "`}</Text>
+                      >{`" ${item.userreview}"`}</Text>
                     </ListItem.Title>
+                    <ListItem.Subtitle>
+                      <CustomText
+                        word={item.username}
+                        style={{
+                          color: "gray",
+                          fontStyle: "italic",
+                          fontSize: 12,
+                        }}
+                      />
+                    </ListItem.Subtitle>
                   </ListItem.Content>
                 </ListItem>
               </TouchableOpacity>
@@ -122,97 +177,66 @@ export default function Hospital(props) {
           onPress={() => setmodelOpen(true)}
         ></Button>
       </View>
-      {modelOpen === true ? (
-        <View
-          style={{
-            position: "absolute",
-            top: "50%",
-            zIndex: 10,
-            backgroundColor: "white",
-            width: "90%",
-            alignSelf: "center",
-            height: 400,
-            borderRadius: 15,
-            paddingHorizontal: 15,
-            paddingVertical: 15,
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 9,
-            },
-            shadowOpacity: 0.48,
-            shadowRadius: 11.95,
-
-            elevation: 18,
-          }}
-        >
-          <View style={{ alignSelf: "flex-end" }}>
-            <Icon
-              type="fontisto"
-              name="close-a"
-              color="gray"
-              size={18}
-              onPress={() => setmodelOpen(false)}
-            />
-          </View>
-          <Input
-            value={userreview}
-            onChangeText={setuserreview}
-            label="Write below"
-            containerStyle={{ height: "80%" }}
-            inputContainerStyle={{
-              height: "90%",
-              borderWidth: 1,
-              borderRadius: 10,
-              padding: 0,
-            }}
-            multiline={true}
-            numberOfLines={10}
-            textAlignVertical="top"
-          />
-          {/* <Button
-            onPress={(e) => sendReview(e)}
-            title="Send"
-            buttonStyle={{
-              backgroundColor: colors.secondary,
-              borderRadius: 10,
-              height: 60,
-              width: "95%",
-              alignSelf: "center",
-            }}
-            id="sendReview"
-          ></Button> */}
-          <Button
-          title="Send"
-          ref={nameForm}
-          onPress={sendReview}
-          />
-        </View>
-      ) : null}
     </View>
+  );
+
+  const Doctors = () => (
+    <FlatList
+      data={doctorList}
+      keyExtractor={(item) => item.id}
+      renderItem={({item}) => {
+        return (
+          <TouchableOpacity onPress={()=>{
+            props.navigation.push('Doctor',{
+              email: item.email
+            })
+          }}>
+            <ListItem bottomDivider>
+              <ListItem.Content>
+                <ListItem.Title style={{ fontSize: 13 }}>
+                  <CustomText word={item.fName} style={{color:'black',fontSize:16}}/>
+                </ListItem.Title>
+                <ListItem.Subtitle>
+                  <CustomText
+                    word={item.faculty}
+                    style={{
+                      color: "gray",
+                      fontSize: 12,
+                    }}
+                  />
+                </ListItem.Subtitle>
+              </ListItem.Content>
+              <ListItem.Chevron/>
+            </ListItem>
+          </TouchableOpacity>
+        );
+      }}
+    />
   );
 
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
     { key: "detail", title: "Detail" },
+    { key: "doctors", title: "Doctors" },
     { key: "reviews", title: "Reviews" },
   ]);
 
   const renderScene = SceneMap({
     detail: Detail,
     reviews: Reviews,
+    doctors: Doctors,
   });
   // End Tab View
   useEffect(() => {
     getHospital();
-  }, [nameForm]);
+    getDoctor();
+  }, []);
 
   return (
     <View style={{ width: "100%", height: "100%" }}>
-      <View style={{ alignSelf: "center", paddingVertical: 20 }}>
-        <Avatar
-          rounded
-          size="xlarge"
+      <View>
+        <Image
+          style={{ width: "100%", height: 200 }}
           source={{
             uri: "https://cdn.britannica.com/17/83817-050-67C814CD/Mount-Everest.jpg",
           }}
@@ -233,6 +257,24 @@ export default function Hospital(props) {
           />
         )}
       />
+      <Overlay
+        overlayStyle={styles.modelContainer}
+        isVisible={modelOpen}
+        onBackdropPress={() => setmodelOpen(false)}
+      >
+        <TextInput
+          multiline={true}
+          numberOfLines={4}
+          onChangeText={(text) => setuserreview(text)}
+          value={userreview}
+          style={styles.review}
+        />
+        <CustomButton
+          title="Send"
+          onPress={sendReview}
+          buttonStyle={{ height: 60 }}
+        />
+      </Overlay>
     </View>
   );
 }
@@ -253,9 +295,24 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontWeight: "bold",
-    paddingLeft:10
+    paddingLeft: 10,
   },
   detail: {
-    fontSize: 14,
+    fontSize: 18,
+    color: "black",
+  },
+  review: {
+    fontSize: 20,
+    height: "88%",
+    borderWidth: 0.5,
+    paddingHorizontal: 5,
+    marginBottom: 10,
+    backgroundColor: "white",
+    borderRadius: 10,
+  },
+  modelContainer: {
+    width: "90%",
+    height: "50%",
+    backgroundColor: "transparent",
   },
 });

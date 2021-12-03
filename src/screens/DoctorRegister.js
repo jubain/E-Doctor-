@@ -135,6 +135,7 @@ function DoctorRegister(props) {
             availableTimes: inputs.availableTimes.split(","),
             hospital: details.name,
             reviews: [],
+            photoURL:'doctor'
           })
           .then(() => {
             alert(`Dr ${inputs.fname} added`);

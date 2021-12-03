@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
-  ActivityIndicator,
 } from "react-native";
 import {
   Avatar,
@@ -40,7 +39,7 @@ function DashBoard(props) {
   // Theme
   const { colors } = useTheme();
   // End theme
-
+  console.log(userDetail.photoURL)
   const getHospital = () => {
     setloading(false);
     let tempArray = [];
@@ -162,12 +161,13 @@ function DashBoard(props) {
             buttonStyle={styles.settingButtons}
             onPress={() => {
               setsignoutLoading(true);
+              toggleOverlay()
               firebase
                 .auth()
                 .signOut()
                 .then(() => {
+                  setsignoutLoading(false);
                   setTimeout(() => {
-                    setsignoutLoading(false);
                     props.navigation.navigate("Login");
                   }, 1000);
                 })
@@ -291,7 +291,7 @@ function DashBoard(props) {
       </View>
 
       <View style={{ alignSelf: "stretch", paddingHorizontal: 20 }}>
-        <CustomText word="What do you need?" size={18} weight="bold" />
+        <CustomText word="What do you need?" size={18} weight="bold" style={{color:'white'}} />
       </View>
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
@@ -309,7 +309,7 @@ function DashBoard(props) {
           )}
 
           <CustomText
-            word={userDetail.photoURL === !"hospital" ? "Bookings" : "Doctors"}
+            word={userDetail.photoURL == "hospital" ?  "Doctors" :"Bookings"}
             color="white"
             padding={7}
             size={12}
@@ -353,7 +353,11 @@ function DashBoard(props) {
           style={styles.button}
           onPress={() => {
             props.navigation.navigate(
-              userDetail.photoURL === "doctor" ? "PatientList" : userDetail.photoURL === "patient"?"UserDetails":"HospitalPatientList"
+              userDetail.photoURL === "doctor"
+                ? "PatientList"
+                : userDetail.photoURL === "patient"
+                ? "UserDetails"
+                : "HospitalPatientList"
             );
           }}
         >
@@ -432,7 +436,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.39,
     shadowRadius: 8.3,
-    marginTop: "5%",
     borderWidth: 0,
     borderTopWidth: 0,
     borderBottomWidth: 0,
@@ -443,6 +446,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "90%",
     height: "30%",
+    marginTop: 20,
     justifyContent: "center",
     backgroundColor: "#C84771",
     borderRadius: 20,

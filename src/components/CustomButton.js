@@ -10,13 +10,14 @@ export default function CustomButton(props) {
   const buttonStyle = props.buttonStyle
   return (
     <Button
-      raised={true}
+      raised={true||props.raised}
       title={title}
       type={type}
-      titleStyle={styles.button}
+      titleStyle={styles.button||props.titleStyle}
       buttonStyle={[{ backgroundColor: colors.secondary },buttonStyle]}
       onPress={props.onPress}
       icon={props.icon}
+      disabled={props.disabled}
     ></Button>
   );
 }

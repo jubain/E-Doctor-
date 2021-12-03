@@ -16,6 +16,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import LoginContext from "../context/LoginContext";
 
 function Doctor(props) {
+  
   const doctor = props.route.params.item;
   const db = firebase.firestore();
   const [booked, setbooked] = useState(false);
@@ -31,6 +32,9 @@ function Doctor(props) {
   const [newavailableTimes, setnewavailableTimes] = useState({
     time: "",
   });
+  const [hospital, sethospital] = useState("")
+  const [faculty, setfaculty] = useState("")
+  const [fname, setfname] = useState("")
 
   // Date picker
   const [date, setDate] = useState(new Date());
@@ -94,25 +98,29 @@ function Doctor(props) {
   // }
 
   const checkBookings = () => {
-    //console.log(userSelectedDate.toString().slice(0,10))
     db.collection("bookings")
       .where("doctorEmail", "==", doctor.email)
-      .where("date", "==", `${userSelectedDate.toString().slice(0, 10)}`)
+      .where("date", "==", `${userSelectedDate.toString().slice(4, 15)}`)
       .where("time", "==", `${userSelectedTime}`)
       .get()
       .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          if (doc.exists) {
-            Alert.alert(
-              "Sorry",
-              `The doctor is booked for ${doc.data().time} on ${
-                doc.data().date
-              } try other date or time`,
-              [{ text: "OK" }]
-            );
-            setbookingExist(true);
-          }
-        });
+        if(querySnapshot.empty){
+          doBooking()
+        }else{
+          alert(`Doctor booked for ${userSelectedDate.toString().slice(4, 15)} at ${userSelectedTime}.`)
+        }
+        // querySnapshot.forEach((doc) => {
+        //   if (doc.exists) {
+        //     Alert.alert(
+        //       "Sorry",
+        //       `The doctor is booked for ${doc.data().time} on ${
+        //         doc.data().date
+        //       } try other date or time`,
+        //       [{ text: "OK" }]
+        //     );
+        //     setbookingExist(true);
+        //   }
+        // });
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
@@ -122,11 +130,14 @@ function Doctor(props) {
   const getdoctorDetail = () => {
     let tempArray = [];
     db.collection("doctors")
-      .where("email", "==", doctor.email)
+      .where("email", "==", props.route.params.email)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           //console.log(doc.data())
+          setfname(doc.data().fName)
+          setfaculty(doc.data().faculty)
+          sethospital(doc.data().hospital)
           setdoctorDetails(doc.data().reviews);
           setavailableTimes(doc.data().availableTimes);
         });
@@ -141,8 +152,8 @@ function Doctor(props) {
       .add({
         patientName: userDetail.displayName,
         pateintEmail: userDetail.email,
-        doctorName: doctor.fName,
-        doctorEmail: doctor.email,
+        doctorName: fname,
+        doctorEmail: props.route.params.email,
         date: userSelectedDate.toString().slice(4, 15),
         time: userSelectedTime,
       })
@@ -274,11 +285,11 @@ function Doctor(props) {
 
   const Awards = (doctor) => (
     <View>
-      <FlatList
+      {/* <FlatList
         data={props.route.params.item.awards}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-      />
+      /> */}
     </View>
   );
 
@@ -332,11 +343,11 @@ function Doctor(props) {
             uri: "https://www.clipartmax.com/png/middle/405-4050774_avatar-icon-flat-icon-shop-download-free-icons-for-avatar-icon-flat.png",
           }}
         />
-        <Text h4>{`Dr ${doctor.fName}`}</Text>
+        <Text h4>{`Dr ${fname}`}</Text>
         <Text h4 h4Style={{ fontSize: 16, paddingVertical: 10 }}>
-          {doctor.faculty}
+          {faculty}
         </Text>
-        <Text style={{ paddingBottom: 10 }}>{doctor.hospital}</Text>
+        <Text style={{ paddingBottom: 10 }}>{hospital}</Text>
       </View>
       <TabView
         navigationState={{ index, routes }}
@@ -357,7 +368,7 @@ function Doctor(props) {
           buttonStyle={{ paddingBottom: 35, backgroundColor: colors.secondary }}
           title={userDetail.photoURL == "hospital" ? "Save" : bookButtonTitle}
           onPress={() => {
-            userDetail.photoURL != "hospital" ? doBooking() : updateChange();
+            userDetail.photoURL != "hospital" ? checkBookings() : updateChange();
           }}
         />
       </View>

@@ -7,7 +7,14 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
-import { Text, Icon, ListItem, Avatar, Overlay } from "react-native-elements";
+import {
+  Text,
+  Icon,
+  ListItem,
+  Avatar,
+  Overlay,
+  BottomSheet,
+} from "react-native-elements";
 import ParallaxScrollView from "react-native-parallax-scroll-view";
 import firebase from "firebase";
 import SelectDropdown from "react-native-select-dropdown";
@@ -78,7 +85,18 @@ function BookAppointments(props) {
   const [searchButtonPressed, setsearchButtonPressed] = useState(false);
   const [error, seterror] = useState("");
   const [hospitalLoading, sethospitalLoading] = useState(false);
-  const [doctorLoading, setdoctorLoading] = useState(false)
+  const [doctorLoading, setdoctorLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const list = [
+    { title: "List Item 1" },
+    { title: "List Item 2" },
+    {
+      title: "Cancel",
+      containerStyle: { backgroundColor: "red" },
+      titleStyle: { color: "white" },
+      onPress: () => setIsVisible(false),
+    },
+  ];
 
   // Overlay
   const [visible, setVisible] = useState(false);
@@ -91,7 +109,7 @@ function BookAppointments(props) {
 
   const findHospitals = () => {
     sethospitalLoading(true);
-    setdoctorList()
+    setdoctorList();
     db.collection("hospitals")
       .where("location", "==", userlocation)
       .get()
@@ -135,6 +153,10 @@ function BookAppointments(props) {
   const doctorDetail = (item) => {
     props.navigation.navigate("Doctor", {
       item: item,
+      email: item.email,
+      fname: item.fName,
+      faculty: item.faculty,
+      hospital: item.hospital,
     });
   };
 
@@ -218,13 +240,14 @@ function BookAppointments(props) {
 
   const findDoctor = () => {
     //db.collection("doctors").where("faculty", "==", userDepartmentPick)
-    setdoctorLoading(true)
+    setdoctorLoading(true);
     if (
       userlocation === "" ||
       userDepartmentPick === "" ||
       userChoosedHospital === ""
     ) {
       alert("please choose Location, Hospital and Department.");
+      setdoctorLoading(false);
     } else {
       setsearchButtonPressed(true);
       db.collection("doctors")
@@ -237,9 +260,9 @@ function BookAppointments(props) {
             seterror("0 Doctors found");
             setsearchButtonPressed(false);
             setTimeout(() => {
-              setdoctorLoading(false)
+              setdoctorLoading(false);
               setdoctorList();
-            }, 2000);
+            }, 1000);
           } else {
             querySnapshot.forEach((doc) => {
               // doc.data() is never undefined for query doc snapshots
@@ -252,8 +275,9 @@ function BookAppointments(props) {
             });
             setTimeout(() => {
               setdoctorList(tempArray);
-              setdoctorLoading(false)
-            }, 1000);
+              setdoctorLoading(false);
+              setIsVisible(true);
+            }, 500);
           }
         })
         .catch((error) => {
@@ -263,117 +287,15 @@ function BookAppointments(props) {
   };
 
   return (
-    <ParallaxScrollView
-      backgroundColor={colors.secondary}
-      contentBackgroundColor={colors.primary}
-      parallaxHeaderHeight={700}
-      renderForeground={() => (
-        <View
-          style={{
-            backgroundColor: colors.primary,
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            position: "relative",
-          }}
-        >
-          <View style={styles.informationContainer}>
-            <CustomText
-              word="Hospital Location"
-              style={styles.text}
-              size={14}
-            />
-            <SelectDropdown
-              data={location}
-              defaultButtonText={userlocation}
-              onSelect={(selectedItem, index) => {
-                setlocation(selectedItem);
-                findHospitals();
-              }}
-              buttonStyle={{
-                borderRadius: 5,
-                width: 130,
-                height: 40,
-                backgroundColor: colors.secondary,
-              }}
-              buttonTextStyle={{ fontSize: 15, color: "white" }}
-              rowTextStyle={{ fontSize: 15 }}
-            />
-          </View>
-          <View style={styles.informationContainer}>
-            <CustomText
-              word="Doctor Speciality"
-              style={styles.text}
-              size={14}
-            />
-            <CustomButton title={userDepartmentPick} onPress={toggleOverlay} />
-          </View>
-          <View style={styles.informationContainer}>
-            <CustomText word="Choose Hospital" style={styles.text} size={14} />
-            {hospitalLoading === true ? (
-              <>
-                <CustomText word="Searching" style={{color:'grey'}}/>
-                <ActivityIndicator size="small" color={colors.secondary} />
-              </>
-            ) : null}
-          </View>
-          {/* Hospital flatlist */}
-          <View style={{ marginTop: "10%", width: "90%" }}>
-            {hospitalList !== undefined ? (
-              hospitalList.length === 0 ? null : (
-                <FlatList
-                  data={hospitalList}
-                  renderItem={renderHospitals}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  style={{
-                    backgroundColor: "#C84771",
-                    borderRadius: 10,
-                    paddingTop: 5,
-                    shadowColor: "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: 11,
-                    },
-                    shadowOpacity: 0.55,
-                    shadowRadius: 14.78,
-                    elevation: 22,
-                  }}
-                />
-              )
-            ) : null}
-          </View>
-          <View style={{ width: "90%", marginTop: 10 }}>
-            <CustomButton
-              title="Search"
-              onPress={findDoctor}
-              buttonStyle={{ height: 50 }}
-            />
-          </View>
-          {doctorList === undefined ? (
-            <CustomText word={error} style={styles.text} />
-          ) : null}
-
-          {doctorLoading===true ?(
-            <>
-              <ActivityIndicator
-                size="large"
-                color={colors.secondary}
-                style={{ top: 200 }}
-              />
-            </>
-          ) : null}
-        </View>
-      )}
+    <View
+      style={{
+        backgroundColor: colors.primary,
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        position: "relative",
+      }}
     >
-      {userDepartmentPick !== "" ? (
-        <FlatList
-          data={doctorList}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.email}
-          style={{ width: "100%" }}
-        />
-      ) : null}
       <Overlay
         isVisible={visible}
         onBackdropPress={toggleOverlay}
@@ -389,7 +311,10 @@ function BookAppointments(props) {
             borderRadius: 10,
           }}
         >
-          <CustomText word="Pick a department" style={[styles.text,{fontSize:18}]} />
+          <CustomText
+            word="Pick a department"
+            style={[styles.text, { fontSize: 18 }]}
+          />
           <View
             style={{
               display: "flex",
@@ -419,7 +344,10 @@ function BookAppointments(props) {
                   />
                   <CustomText
                     word={faculty.name}
-                    style={[styles.text,{textAlign:'center',paddingTop:10}]}
+                    style={[
+                      styles.text,
+                      { textAlign: "center", paddingTop: 10 },
+                    ]}
                   />
                 </TouchableOpacity>
               );
@@ -427,8 +355,137 @@ function BookAppointments(props) {
           </View>
         </View>
       </Overlay>
-    </ParallaxScrollView>
+      <View style={styles.informationContainer}>
+        <CustomText word="Hospital Location" style={styles.text} size={14} />
+        <SelectDropdown
+          data={location}
+          defaultButtonText={userlocation}
+          onSelect={(selectedItem, index) => {
+            setlocation(selectedItem);
+            findHospitals();
+          }}
+          buttonStyle={{
+            borderRadius: 5,
+            width: 130,
+            height: 40,
+            backgroundColor: colors.secondary,
+          }}
+          buttonTextStyle={{ fontSize: 15, color: "white" }}
+          rowTextStyle={{ fontSize: 15 }}
+        />
+      </View>
+      <View style={styles.informationContainer}>
+        <CustomText word="Doctor Speciality" style={styles.text} size={14} />
+        <CustomButton title={userDepartmentPick} onPress={toggleOverlay} />
+      </View>
+      <View style={styles.informationContainer}>
+        <CustomText word="Choose Hospital" style={styles.text} size={14} />
+        {hospitalLoading === true ? (
+          <>
+            <CustomText word="Searching" style={{ color: "grey" }} />
+            <ActivityIndicator size="small" color={colors.secondary} />
+          </>
+        ) : null}
+      </View>
+      {/* Hospital flatlist */}
+      <View style={{ marginTop: "10%", width: "90%" }}>
+        {hospitalList !== undefined ? (
+          hospitalList.length === 0 ? null : (
+            <FlatList
+              data={hospitalList}
+              renderItem={renderHospitals}
+              keyExtractor={(item) => item.id}
+              horizontal
+              style={{
+                backgroundColor: "#C84771",
+                borderRadius: 10,
+                paddingTop: 5,
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 11,
+                },
+                shadowOpacity: 0.55,
+                shadowRadius: 14.78,
+                elevation: 22,
+              }}
+            />
+          )
+        ) : null}
+      </View>
+      <View style={{ width: "90%", marginTop: 10 }}>
+        <CustomButton
+          title="Search"
+          onPress={findDoctor}
+          buttonStyle={{ height: 50 }}
+        />
+      </View>
+      {/* Bottom Sheet */}
+      <BottomSheet
+        isVisible={isVisible}
+        containerStyle={{ backgroundColor: "rgba(0.5, 0.25, 0, 0.2)" }}
+      >
+        {doctorList !== undefined
+          ? doctorList.map((l, i) => (
+              <ListItem
+                key={i}
+                containerStyle={l.containerStyle}
+                onPress={() => {
+                  setIsVisible(false)
+                  props.navigation.navigate("Doctor", {
+                    item: l,
+                    email: l.email,
+                    fname: l.fName,
+                    faculty: l.faculty,
+                    hospital: l.hospital,
+                  });
+                }}
+              >
+                <ListItem.Content>
+                  <ListItem.Title style={l.titleStyle}>
+                    {l.fName}
+                  </ListItem.Title>
+                </ListItem.Content>
+                <ListItem.Content>
+                  <ListItem.Subtitle style={l.titleStyle}>
+                    {l.faculty}
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+                <ListItem.Chevron></ListItem.Chevron>
+              </ListItem>
+            ))
+          : null}
+        <CustomButton
+          title="Cancel"
+          buttonStyle={{ paddingVertical: 20 }}
+          onPress={() => setIsVisible(false)}
+        />
+      </BottomSheet>
+
+      {doctorList === undefined ? (
+        <CustomText word={error} style={styles.text} />
+      ) : null}
+      {doctorLoading === true ? (
+        <>
+          <ActivityIndicator
+            size="large"
+            color={colors.secondary}
+            style={{ top: 200 }}
+          />
+        </>
+      ) : null}
+    </View>
   );
+  {
+    /* {userDepartmentPick !== "" ? (
+        <FlatList
+          data={doctorList}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.email}
+          style={{ width: "100%" }}
+        />
+      ) : null} */
+  }
 }
 
 const styles = StyleSheet.create({

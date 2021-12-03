@@ -1,12 +1,7 @@
 import React, { useContext } from "react";
 import firebase from "firebase/app";
 import { firebaseConfig } from "./src/config/config";
-import {
-  StyleSheet,
-  View,
-  Platform,
-  Dimensions,
-} from "react-native";
+import { StyleSheet, View, Platform, Dimensions } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { navigationRef, navigate } from "./RootNavigation";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -34,6 +29,7 @@ import Hospital from "./src/screens/Hospital";
 import HospitalRegister from "./src/screens/HospitalRegister";
 import Account from "./src/screens/Account";
 import DoctorList from "./src/screens/DoctorList";
+import CustomButton from "./src/components/CustomButton";
 
 let firebaseAppDefined = false;
 
@@ -63,6 +59,7 @@ const App = (props) => {
       ...DefaultTheme.colors,
       primary: "white",
       secondary: "#C84771",
+      green:'#17a5a5'
     },
   };
 
@@ -76,24 +73,28 @@ const App = (props) => {
                 headerStyle: { backgroundColor: myTheme.colors.secondary },
                 headerTitleAlign: "center",
                 headerBackTitleStyle: { marginBottom: "40%" },
+                cardStyle: { backgroundColor: "white" },
               }
             : {
                 headerTitleStyle: { fontWeight: "bold" },
                 headerStyle: { backgroundColor: "#C84771" },
+                cardStyle: { backgroundColor: "white" },
               }
         }
       >
-        <Stack.Screen name="Loading" component={Loading} 
-        options={{
-          headerShown:false
-        }}
+        <Stack.Screen
+          name="Loading"
+          component={Loading}
+          options={{
+            headerShown: false,
+          }}
         />
         <Stack.Screen
           name="Login"
           component={Login}
           options={{
             gestureEnabled: false,
-            headerShown:false
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -107,6 +108,7 @@ const App = (props) => {
                 title="Back"
                 type="clear"
                 onPress={() => navigate("Login")}
+                titleStyle={{color:'black'}}
               />
             ),
           }}
@@ -144,7 +146,11 @@ const App = (props) => {
         <Stack.Screen
           name="Dashboard"
           component={DashBoard}
-          options={{ gestureEnabled: false, headerShown: false }}
+          options={{
+            gestureEnabled: false,
+            headerShown: false,
+            cardStyle: { backgroundColor: "white" },
+          }}
         />
         <Stack.Screen
           name="UserDetails"
@@ -156,8 +162,11 @@ const App = (props) => {
                 title="Back"
                 type="clear"
                 onPress={() => navigate("Dashboard")}
+                titleStyle={{color:'white'}}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
+            headerTitleStyle:{color:'white',fontSize:18}
           }}
         />
 
@@ -167,7 +176,7 @@ const App = (props) => {
           component={Bookings}
           options={{
             headerShown: true,
-            headerTitle: "",
+            headerTitle: "Bookings",
             headerLeft: () => (
               <Button
                 title="Back"
@@ -175,6 +184,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         <Stack.Screen
@@ -190,6 +200,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         <Stack.Screen
@@ -205,6 +216,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         <Stack.Screen
@@ -220,6 +232,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         <Stack.Screen
@@ -233,6 +246,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         <Stack.Screen
@@ -245,9 +259,10 @@ const App = (props) => {
               <Button
                 title="Back"
                 type="clear"
-                onPress={() => navigate("Book")}
+                onPress={() => navigate('Book')}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         <Stack.Screen
@@ -263,6 +278,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         {/* route.params.user.photoURL === 'patient' ? route.params.doctor : route.params.patientName */}
@@ -270,10 +286,23 @@ const App = (props) => {
           name="Chat"
           component={Chat}
           options={({ route }) => ({
-            title:
-              userDetail.photoURL === "patient"
-                ? route.params.doctor
-                : route.params.patientName,
+            title: (
+              <CustomButton
+                title={
+                  userDetail.photoURL === "patient"
+                    ? route.params.doctor
+                    : route.params.patientName
+                }
+                raised={false}
+                type="clear"
+                titleStyle={{color:'black',fontSize:20}}
+                onPress={() => {
+                  navigate("Doctor", {
+                    email: route.params.doctorEmail,
+                  });
+                }}
+              />
+            ),
             headerLeft: () => (
               <Button
                 title="Back"
@@ -281,6 +310,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
             headerRight: () => (
               <View
                 style={{
@@ -315,6 +345,7 @@ const App = (props) => {
                 onPress={() => navigate("Dashboard")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
         />
         {/* <Stack.Screen name="Test" component={Test} /> */}
@@ -330,6 +361,7 @@ const App = (props) => {
                 onPress={() => navigate("PatientList")}
               />
             ),
+            cardStyle: { backgroundColor: "white" },
           }}
           // options={({ route }) => ({
           //   title: route.params.details.user.photoURL === 'patient' ? route.params.details.user.patientName : null
