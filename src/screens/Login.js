@@ -26,13 +26,13 @@ function Login(props) {
         .auth()
         .signInWithEmailAndPassword(inputs.email, inputs.password)
         .then((userCredential) => {
-          setloading(false)
-            props.navigation.navigate("Loading");
+          setloading(false);
+          props.navigation.navigate("Loading");
         })
         .catch((error) => {
           var errorCode = error.code;
           var errorMessage = error.message;
-          setloading(false)
+          setloading(false);
           alert(error);
         });
     } else {
@@ -48,13 +48,13 @@ function Login(props) {
         .then((querySnapshot) => {
           setTimeout(() => {
             if (querySnapshot.empty) {
-              seterrorMessage("Invalid email or password.")
+              seterrorMessage("Invalid email or password.");
               setloading(false);
             } else {
               querySnapshot.forEach((doc) => {
                 setloading(false);
                 getCurrentUser(doc.data());
-                props.navigation.navigate("Dashboard");
+                props.navigation.navigate("Test");
               });
             }
           }, 1000);
@@ -120,7 +120,12 @@ function Login(props) {
               seterrorMessage("");
             }}
           />
-  {loading===true?<ActivityIndicator size="large" style={{position:'absolute',left:'50%'}}/>:null}
+          {loading === true ? (
+            <ActivityIndicator
+              size="large"
+              style={{ position: "absolute", left: "50%" }}
+            />
+          ) : null}
           <View style={styles.buttons}>
             <View style={styles.button}>
               <CustomButton
@@ -146,7 +151,7 @@ function Login(props) {
             </Text>
             <View style={styles.button}>
               <CustomButton
-                title= "Doctor Login"
+                title="Doctor Login"
                 buttonStyle={styles.loginAndRegister}
                 onPress={doctorLogin}
               />

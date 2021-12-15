@@ -7,16 +7,23 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-import { Avatar, Text, Button, ListItem, Input } from "react-native-elements";
+import {
+  Avatar,
+  Text,
+  Button,
+  ListItem,
+  Input,
+  Overlay,
+} from "react-native-elements";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { useTheme } from "@react-navigation/native";
 import firebase from "firebase";
 import SelectDropdown from "react-native-select-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import LoginContext from "../context/LoginContext";
+import CustomButton from "../components/CustomButton";
 
 function Doctor(props) {
-  
   const doctor = props.route.params.item;
   const db = firebase.firestore();
   const [booked, setbooked] = useState(false);
@@ -32,9 +39,9 @@ function Doctor(props) {
   const [newavailableTimes, setnewavailableTimes] = useState({
     time: "",
   });
-  const [hospital, sethospital] = useState("")
-  const [faculty, setfaculty] = useState("")
-  const [fname, setfname] = useState("")
+  const [hospital, sethospital] = useState("");
+  const [faculty, setfaculty] = useState("");
+  const [fname, setfname] = useState("");
 
   // Date picker
   const [date, setDate] = useState(new Date());
@@ -60,6 +67,14 @@ function Doctor(props) {
 
   // Date picker ends
 
+  // Modal
+  const [visible, setVisible] = useState(false);
+  const [userreview, setuserreview] = useState("");
+
+  const toggleOverlay = () => {
+    setVisible(!visible);
+  };
+
   const renderItem = ({ item }) => {
     return (
       <ListItem bottomDivider>
@@ -68,13 +83,14 @@ function Doctor(props) {
     );
   };
 
-  const createChatBox = (doctorEmail, patientEmail) => {
+  const createChatBox = () => {
     db.collection("chats").add({
       contents: [],
       doctorEmail: doctor.email,
       patientEmail: userDetail.email,
       date: userSelectedDate.toString().slice(4, 15),
       time: userSelectedTime,
+      hospital: hospital
     });
   };
 
@@ -98,33 +114,32 @@ function Doctor(props) {
   // }
 
   const checkBookings = () => {
-    db.collection("bookings")
-      .where("doctorEmail", "==", doctor.email)
-      .where("date", "==", `${userSelectedDate.toString().slice(4, 15)}`)
-      .where("time", "==", `${userSelectedTime}`)
-      .get()
-      .then((querySnapshot) => {
-        if(querySnapshot.empty){
-          doBooking()
-        }else{
-          alert(`Doctor booked for ${userSelectedDate.toString().slice(4, 15)} at ${userSelectedTime}.`)
-        }
-        // querySnapshot.forEach((doc) => {
-        //   if (doc.exists) {
-        //     Alert.alert(
-        //       "Sorry",
-        //       `The doctor is booked for ${doc.data().time} on ${
-        //         doc.data().date
-        //       } try other date or time`,
-        //       [{ text: "OK" }]
-        //     );
-        //     setbookingExist(true);
-        //   }
-        // });
-      })
-      .catch((error) => {
-        console.log("Error getting documents: ", error);
-      });
+    if (
+      userSelectedDate === "Select Date" ||
+      userSelectedTime === "Select Time"
+    ) {
+      alert("Please select date and time for the booking.");
+    } else {
+      db.collection("bookings")
+        .where("doctorEmail", "==", props.route.params.email)
+        .where("date", "==", `${userSelectedDate.toString().slice(4, 15)}`)
+        .where("time", "==", `${userSelectedTime}`)
+        .get()
+        .then((querySnapshot) => {
+          if (querySnapshot.empty) {
+            doBooking();
+          } else {
+            alert(
+              `Doctor booked for ${userSelectedDate
+                .toString()
+                .slice(4, 15)} at ${userSelectedTime}.`
+            );
+          }
+        })
+        .catch((error) => {
+          console.log("Error getting documents: ", error);
+        });
+    }
   };
 
   const getdoctorDetail = () => {
@@ -135,9 +150,9 @@ function Doctor(props) {
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           //console.log(doc.data())
-          setfname(doc.data().fName)
-          setfaculty(doc.data().faculty)
-          sethospital(doc.data().hospital)
+          setfname(doc.data().fName);
+          setfaculty(doc.data().faculty);
+          sethospital(doc.data().hospital);
           setdoctorDetails(doc.data().reviews);
           setavailableTimes(doc.data().availableTimes);
         });
@@ -162,9 +177,6 @@ function Doctor(props) {
         Alert.alert("Success", `Booking completed`, [
           {
             text: "OK",
-            // onPress: () => {
-            //   props.navigation.navigate("Dashboard");
-            // },
           },
         ]);
         setbooked(true);
@@ -175,27 +187,61 @@ function Doctor(props) {
       });
   };
   const updateChange = () => {
+    if (newavailableTimes.time == "") {
+      alert("Please type new time.");
+    } else {
+      db.collection("doctors")
+        .where("email", "==", props.route.params.email)
+        .get()
+        .then((querySnapshot) => {
+          if (querySnapshot.empty) {
+            console.log("No data");
+          } else {
+            querySnapshot.forEach((doc) => {
+              db.collection("doctors")
+                .doc(doc.id)
+                .update({
+                  availableTimes: newavailableTimes.time.split(","),
+                });
+            });
+            alert(
+              `Time updated for doctor with email ${props.route.params.email}.`
+            );
+            setnewavailableTimes({ time: "" });
+            getdoctorDetail();
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+  const sendReviews = () => {
+    const username = userDetail.displayName;
     db.collection("doctors")
-      .where("email", "==", doctor.email)
+      .where("email", "==", props.route.params.email)
       .get()
       .then((querySnapshot) => {
-        if (querySnapshot.empty) {
-          console.log("No data");
-        } else {
-          querySnapshot.forEach((doc) => {
-            db.collection("doctors")
-              .doc(doc.id)
-              .update({
-                availableTimes: newavailableTimes.time.split(','),
-              });
-          });
-        }
+        querySnapshot.forEach((doc) => {
+          db.collection("doctors")
+            .doc(doc.id)
+            .update({
+              reviews: firebase.firestore.FieldValue.arrayUnion({
+                username,
+                userreview,
+              }),
+            })
+            .then(() => {
+              alert("Your review has been submitted.");
+              getdoctorDetail();
+              setuserreview("");
+            });
+        });
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
       });
   };
-
   const Booking = () => (
     <View>
       <View
@@ -233,7 +279,9 @@ function Doctor(props) {
           flexDirection: "row",
         }}
       >
-        <Text>{userDetail.photoURL == "hospital" ? "New Time:" : "Date"}</Text>
+        <Text>
+          {userDetail.photoURL == "hospital" ? "Set new Time:" : "Date"}
+        </Text>
         {userDetail.photoURL != "hospital" ? (
           show != true && (
             <Button
@@ -273,7 +321,7 @@ function Doctor(props) {
             onChange={onChange}
             style={{
               height: 50,
-              width: 150,
+              width: 200,
               backgroundColor: "rgb(242,242,242)",
             }}
             minimumDate={date}
@@ -293,23 +341,26 @@ function Doctor(props) {
     </View>
   );
 
-  const Reviews = (doctor) => (
-    <View>
-      {doctorDetails != undefined ? (
-        <FlatList
-          data={doctorDetails}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            return (
-              <ListItem bottomDivider>
-                <ListItem.Title>{item}</ListItem.Title>
-              </ListItem>
-            );
-          }}
-        />
-      ) : null}
-    </View>
-  );
+  const Reviews = (doctor) =>
+    userDetail.photoURL === "patient" ? (
+      <View>
+        {doctorDetails != undefined ? (
+          <FlatList
+            data={doctorDetails}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              return (
+                <ListItem bottomDivider>
+                  <ListItem.Title>{item.userreview}</ListItem.Title>
+                  <ListItem.Subtitle>{item.username}</ListItem.Subtitle>
+                </ListItem>
+              );
+            }}
+          />
+        ) : null}
+        <CustomButton title="Write" onPress={() => setVisible(true)} />
+      </View>
+    ) : null;
 
   // Tab View
   const layout = useWindowDimensions();
@@ -368,10 +419,26 @@ function Doctor(props) {
           buttonStyle={{ paddingBottom: 35, backgroundColor: colors.secondary }}
           title={userDetail.photoURL == "hospital" ? "Save" : bookButtonTitle}
           onPress={() => {
-            userDetail.photoURL != "hospital" ? checkBookings() : updateChange();
+            userDetail.photoURL != "hospital"
+              ? checkBookings()
+              : updateChange();
           }}
         />
       </View>
+      <Overlay isVisible={visible} onBackdropPress={toggleOverlay}>
+        <View style={{ width: 300, height: 500 }}>
+          <Input
+            multiline={true}
+            numberOfLines={3}
+            placeholder="Write you review"
+            require={true}
+            style={{ height: 430, fontSize: 12 }}
+            onChangeText={(text) => setuserreview(text)}
+            value={userreview}
+          />
+          <CustomButton title="Send" onPress={sendReviews} />
+        </View>
+      </Overlay>
     </View>
   );
 }

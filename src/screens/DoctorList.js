@@ -1,43 +1,20 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyleSheet, View, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Dimensions, TouchableOpacity } from "react-native";
 import firebase from "firebase";
 import LoginContext from "../context/LoginContext";
 import { FlatList } from "react-native-gesture-handler";
-import { ListItem, Overlay, Input } from "react-native-elements";
+import { ListItem, Overlay, Input, Avatar } from "react-native-elements";
 import CustomButton from "../components/CustomButton";
 import CustomText from "../components/CustomText";
-const faculty = [
-  {
-    id: "1",
-    name: "Dentist",
-  },
-  {
-    id: "1",
-    name: "Dentist",
-  },
-  {
-    id: "1",
-    name: "Dentist",
-  },
-  {
-    id: "1",
-    name: "Dentist",
-  },
-  {
-    id: "1",
-    name: "Dentist",
-  },
-  {
-    id: "1",
-    name: "Dentist",
-  },
-];
+
+const windowHeight = Dimensions.get("window").height;
 
 export default function DoctorList(props) {
   const db = firebase.firestore();
   const { userDetail } = useContext(LoginContext);
   const [doctors, setdoctors] = useState([]);
   const [disabled, setdisabled] = useState(false);
+  const [listClicked, setlistClicked] = useState(false);
 
   //Modal
   const [visible, setVisible] = useState(false);
@@ -59,6 +36,7 @@ export default function DoctorList(props) {
     availableTimes: "",
     reviews: [],
   });
+  const [doctorTimes, setdoctorTimes] = useState(null);
 
   const getDoctors = () => {
     let tempArray = [];
@@ -77,91 +55,171 @@ export default function DoctorList(props) {
   };
   // Add Doctor
   const addDoctor = () => {
+    let tempArray = [];
+    const typedTimes = inputs.availableTimes.split(",");
     if (
       inputs.email == "" ||
       inputs.faculty == "" ||
       inputs.fname == "" ||
       inputs.lname == "" ||
-      inputs.hospital ||
       inputs.availableTimes == "" ||
       inputs.password == ""
     ) {
       alert("Empty Field detected.");
+      return;
     } else {
-      db.collection("doctors")
-        .where("email", "==", inputs.email)
-        .get()
-        .then((querySnapshot) => {
-          if (querySnapshot.empty) {
-            db.collection("doctors")
-              .add({
-                email: inputs.email,
-                fName: inputs.fname,
-                lName: inputs.lname,
-                faculty: inputs.faculty,
-                availableTimes: inputs.availableTimes.split(","),
-                hospital: userDetail.displayName,
-                reviews: [],
-              })
-              .then(() => {
-                getDoctors();
-                alert(`Dr ${inputs.fname} added`);
-                setinputs({
-                  fname: "",
-                  lname: "",
-                  email: "",
-                  password: "",
-                  faculty: "",
-                  availableTimes: "",
+      for (let index = 0; index < typedTimes.length; index++) {
+        if (/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/.test(typedTimes[index])) {
+          tempArray.push(typedTimes[index]);
+        } else {
+          alert("Please enter valid times.");
+          setdoctorTimes(null)
+          tempArray = [];
+          break;
+        }
+      }
+      if (tempArray.length !== 0) {
+        setdoctorTimes(tempArray);
+      }
+      if (doctorTimes !== null) {
+        console.log(doctorTimes);
+        db.collection("doctors")
+          .where("email", "==", inputs.email)
+          .get()
+          .then((querySnapshot) => {
+            if (querySnapshot.empty) {
+              db.collection("doctors")
+                .add({
+                  email: inputs.email,
+                  fName: inputs.fname,
+                  lName: inputs.lname,
+                  faculty: inputs.faculty,
+                  availableTimes: inputs.availableTimes.split(","),
+                  hospital: userDetail.displayName,
                   reviews: [],
-                  photoURL: "doctor",
+                  photoURL:'doctor',
+                  password:inputs.password
+                })
+                .then(() => {
+                  getDoctors();
+                  setdoctorTimes(null);
+                  alert(`Dr ${inputs.fname} added`);
+                  setinputs({
+                    fname: "",
+                    lname: "",
+                    email: "",
+                    password: "",
+                    faculty: "",
+                    availableTimes: "",
+                    reviews: [],
+                    photoURL: "doctor",
+                  });
                 });
-                removeClick();
-              });
-          } else {
-            alert("Doctor with same email found.");
-          }
-        })
-        .catch((error) => {
-          console.log("Error getting documents: ", error);
-        });
+            } else {
+              alert("Doctor with same email found.");
+            }
+          })
+          .catch((error) => {
+            console.log("Error getting documents: ", error);
+          });
+      } else {
+        return;
+      }
     }
   };
   // End Add Doctor
   const renderDoctor = ({ item }) => {
     return (
-      <TouchableOpacity
+      <ListItem
+        bottomDivider
         onPress={() => {
+          setlistClicked(true);
           props.navigation.navigate("Doctor", {
-            item: item,
+            email: item.email,
           });
         }}
+        containerStyle={{
+          borderWidth: 1,
+          borderRadius: 20,
+          borderColor: "gray",
+        }}
+        style={{
+          marginVertical: 5,
+          borderRadius: 20,
+        }}
+        underlayColor="red"
       >
-        <ListItem bottomDivider>
+        <ListItem.Content>
+          <Avatar
+            source={{
+              uri: "https://pm1.narvii.com/5612/8da5288495d2c975401656ebebc06ed2595f7957_hq.jpg",
+            }}
+            rounded
+          />
+        </ListItem.Content>
+        <ListItem.Content>
           <ListItem.Title>
-            <CustomText word={item.fName} style={styles.text} />{"         "}
+            <CustomText
+              word={item.fName}
+              style={[styles.text, { fontSize: 18 }]}
+            />
           </ListItem.Title>
-          <ListItem.Content>
-            <ListItem.Title>
-              <CustomText word={item.faculty} style={styles.text}/>
-           </ListItem.Title>
-          </ListItem.Content>
-        </ListItem>
-      </TouchableOpacity>
+          <ListItem.Subtitle>
+            <CustomText
+              word={item.faculty}
+              style={[styles.text, { fontSize: 12}]}
+            />
+          </ListItem.Subtitle>
+        </ListItem.Content>
+        <ListItem.Chevron />
+      </ListItem>
     );
   };
   useEffect(() => {
+    setlistClicked(false);
     getDoctors();
   }, []);
   return (
     <View style={styles.body}>
-      <FlatList
-        data={doctors}
-        keyExtractor={(item) => item.id}
-        renderItem={renderDoctor}
+      <View style={{ paddingHorizontal: 5, width: "90%", paddingTop: "20%" }}>
+        <CustomText
+          word="Doctor List"
+          style={{ fontSize: 20, color: "black", fontWeight: "bold" }}
+        />
+        <FlatList
+          data={doctors}
+          keyExtractor={(item) => item.id}
+          renderItem={renderDoctor}
+          style={{ paddingTop: "10%"}}
+        />
+      </View>
+
+      <CustomButton
+        title={<CustomText word="Add Doctor" style={{ fontSize: 18 }} />}
+        buttonStyle={styles.button}
+        onPress={() => setVisible(true)}
       />
-      <Overlay isVisible={visible} onBackdropPress={toggleOverlay}>
+      <Overlay
+        overlayStyle={{ marginHorizontal: 10, borderRadius: 10 }}
+        isVisible={visible}
+        onBackdropPress={toggleOverlay}
+      >
         <View style={styles.doctorMainContainer}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 20,
+            }}
+          >
+            <CustomText
+              word="New Doctor"
+              style={{ color: "gray", fontSize: 20 }}
+            />
+          </View>
+
           <View style={styles.doctorContainer}>
             <View style={styles.doctorInputContainer}>
               <Input
@@ -169,7 +227,9 @@ export default function DoctorList(props) {
                 autoCompleteType="off"
                 autoCorrect={false}
                 value={inputs.fname}
-                label="First Name"
+                label={
+                  <CustomText word="First Name" style={{ color: "gray" }} />
+                }
                 labelStyle={styles.labels}
                 inputStyle={styles.doctorInputInside}
                 onChangeText={(text) => setinputs({ ...inputs, fname: text })}
@@ -182,7 +242,9 @@ export default function DoctorList(props) {
                 autoCompleteType="off"
                 autoCorrect={false}
                 value={inputs.lname}
-                label="Last Name"
+                label={
+                  <CustomText word="Last Name" style={{ color: "gray" }} />
+                }
                 inputStyle={styles.doctorInputInside}
                 labelStyle={styles.labels}
                 onChangeText={(text) => setinputs({ ...inputs, lname: text })}
@@ -198,7 +260,7 @@ export default function DoctorList(props) {
                 autoCorrect={false}
                 value={inputs.email}
                 inputStyle={styles.doctorInputInside}
-                label="Email"
+                label={<CustomText word="Email" style={{ color: "gray" }} />}
                 labelStyle={styles.labels}
                 onChangeText={(text) => setinputs({ ...inputs, email: text })}
                 inputContainerStyle={styles.doctorInput}
@@ -210,7 +272,7 @@ export default function DoctorList(props) {
                 autoCompleteType="off"
                 autoCorrect={false}
                 value={inputs.password}
-                label="Password"
+                label={<CustomText word="Password" style={{ color: "gray" }} />}
                 inputStyle={styles.doctorInputInside}
                 labelStyle={styles.labels}
                 onChangeText={(text) =>
@@ -229,7 +291,7 @@ export default function DoctorList(props) {
                 autoCorrect={false}
                 value={inputs.faculty}
                 inputStyle={styles.doctorInputInside}
-                label="Faculty"
+                label={<CustomText word="Faculty" style={{ color: "gray" }} />}
                 labelStyle={styles.labels}
                 onChangeText={(text) => setinputs({ ...inputs, faculty: text })}
                 inputContainerStyle={styles.doctorInput}
@@ -242,9 +304,9 @@ export default function DoctorList(props) {
                 autoCorrect={false}
                 value={inputs.availableTimes}
                 inputStyle={styles.doctorInputInside}
-                label="Time"
+                label={<CustomText word="Time" style={{ color: "gray" }} />}
                 labelStyle={styles.labels}
-                placeholder="e.g. 12:00,5:00"
+                placeholder="e.g. 12:00, 05:00, 06:00...."
                 onChangeText={(text) =>
                   setinputs({ ...inputs, availableTimes: text })
                 }
@@ -255,7 +317,7 @@ export default function DoctorList(props) {
           <View style={styles.doctorContainer}>
             <View style={[styles.doctorInputContainer, styles.doctorButtons]}>
               <CustomButton
-                title="Add"
+                title={<CustomText word="Add" style={{ fontSize: 16 }} />}
                 onPress={addDoctor}
                 disabled={disabled}
               />
@@ -263,24 +325,19 @@ export default function DoctorList(props) {
           </View>
         </View>
       </Overlay>
-      <CustomButton
-        title="ADD"
-        buttonStyle={styles.button}
-        onPress={() => setVisible(true)}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    paddingVertical: 15,
-    marginHorizontal: 10,
+  body: {
+    height: windowHeight - 100,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   doctorMainContainer: {
-    borderWidth: 1,
-    borderRadius: 10,
-    borderColor: "gray",
     paddingVertical: 20,
   },
   doctorContainer: {

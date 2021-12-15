@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Dimensions
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import {
@@ -38,8 +39,8 @@ const faculties = [
   },
   {
     id: 3,
-    name: "Orthopedic",
-    icon: "bone",
+    name: "Neurologist",
+    icon: "barin",
     type: "font-awesome-5",
     iconName: "brain",
   },
@@ -60,7 +61,7 @@ const faculties = [
   },
   {
     id: 6,
-    name: "Orthopedics",
+    name: "Orthopedic",
     icon: "baby",
     type: "font-awesome-5",
     iconName: "bone",
@@ -75,6 +76,8 @@ const location = [
   "Gorkha",
   "Butwal",
 ];
+
+const height = Dimensions.get('window').height
 
 function BookAppointments(props) {
   const [hospitalList, sethospitalList] = useState();
@@ -290,10 +293,11 @@ function BookAppointments(props) {
     <View
       style={{
         backgroundColor: colors.primary,
-        height: "100%",
+        height: height,
         display: "flex",
         alignItems: "center",
         position: "relative",
+        justifyContent:'space-evenly'
       }}
     >
       <Overlay
@@ -388,7 +392,7 @@ function BookAppointments(props) {
         ) : null}
       </View>
       {/* Hospital flatlist */}
-      <View style={{ marginTop: "10%", width: "90%" }}>
+      <View style={{ width: "90%" }}>
         {hospitalList !== undefined ? (
           hospitalList.length === 0 ? null : (
             <FlatList
@@ -413,7 +417,7 @@ function BookAppointments(props) {
           )
         ) : null}
       </View>
-      <View style={{ width: "90%", marginTop: 10 }}>
+      <View style={{ width: "90%" }}>
         <CustomButton
           title="Search"
           onPress={findDoctor}
@@ -517,7 +521,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     paddingHorizontal: 15,
-    paddingVertical: 20,
   },
   specialityOptions: {
     display: "flex",

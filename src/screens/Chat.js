@@ -19,7 +19,6 @@ function Chat(props) {
   var patient = props.route.params.patientEmail;
   const date = props.route.params.date;
   const time = props.route.params.time;
-  var item = props.route.params.item;
   const [messageAndChat, setmessageAndChat] = useState();
   const db = firebase.firestore();
   const {colors} = useTheme()
@@ -93,7 +92,7 @@ function Chat(props) {
   };
 
   const getChatData = () => {
-    console.log(date);
+    
     db.collection("chats")
       .where(
         userDetail.photoURL === "patient" ? "patientEmail" : "doctorEmail",

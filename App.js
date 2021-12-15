@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import firebase from "firebase/app";
 import { firebaseConfig } from "./src/config/config";
 import { StyleSheet, View, Platform, Dimensions } from "react-native";
@@ -30,6 +30,8 @@ import HospitalRegister from "./src/screens/HospitalRegister";
 import Account from "./src/screens/Account";
 import DoctorList from "./src/screens/DoctorList";
 import CustomButton from "./src/components/CustomButton";
+import HospitalPatientList from "./src/screens/HospitalPatientList";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 let firebaseAppDefined = false;
 
@@ -52,323 +54,479 @@ setInterval(() => {
 
 const App = (props) => {
   const Stack = createStackNavigator();
+  const Tab = createBottomTabNavigator();
   const { userDetail } = useContext(LoginContext);
+  const [isSignedIn, setisSignedIn] = useState(false);
   const myTheme = {
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
       primary: "white",
       secondary: "#C84771",
-      green:'#17a5a5'
+      green: "#17a5a5",
     },
   };
-
+  {
+    console.log(isSignedIn);
+  }
   return (
-    <NavigationContainer theme={myTheme} ref={navigationRef}>
-      <Stack.Navigator
-        initialRouteName="Loading"
-        screenOptions={
-          Platform.OS === "android"
-            ? {
-                headerStyle: { backgroundColor: myTheme.colors.secondary },
-                headerTitleAlign: "center",
-                headerBackTitleStyle: { marginBottom: "40%" },
-                cardStyle: { backgroundColor: "white" },
-              }
-            : {
-                headerTitleStyle: { fontWeight: "bold" },
-                headerStyle: { backgroundColor: "#C84771" },
-                cardStyle: { backgroundColor: "white" },
-              }
-        }
-      >
-        <Stack.Screen
-          name="Loading"
-          component={Loading}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{
-            gestureEnabled: false,
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="UserRegister"
-          component={UserRegistration}
-          options={{
-            headerShown: true,
-            headerTitle: "Sign Up",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Login")}
-                titleStyle={{color:'black'}}
-              />
-            ),
-          }}
-        />
-        <Stack.Screen
-          name="DoctorRegister"
-          component={DoctorRegister}
-          options={{
-            headerShown: true,
-            headerTitle: "Register",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Login")}
-              />
-            ),
-          }}
-        />
-        <Stack.Screen
-          name="HospitalRegister"
-          component={HospitalRegister}
-          options={{
-            headerShown: true,
-            headerTitle: "Register",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Login")}
-              />
-            ),
-          }}
-        />
-        <Stack.Screen
-          name="Dashboard"
-          component={DashBoard}
-          options={{
-            gestureEnabled: false,
-            headerShown: false,
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        <Stack.Screen
-          name="UserDetails"
-          component={UserDetails}
-          options={{
-            title: "Detail",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-                titleStyle={{color:'white'}}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-            headerTitleStyle:{color:'white',fontSize:18}
-          }}
-        />
-
-        {/* <Stack.Screen name="DoctorDashboard" component={DoctorDashboard} options={{ headerShown: false }} /> */}
-        <Stack.Screen
-          name="Bookings"
-          component={Bookings}
-          options={{
-            headerShown: true,
-            headerTitle: "Bookings",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        <Stack.Screen
-          name="Book"
-          component={BookAppointments}
-          options={{
-            headerShown: true,
-            headerTitle: "Book Appointment",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        <Stack.Screen
-          name="DoctorList"
-          component={DoctorList}
-          options={{
-            headerShown: true,
-            headerTitle: "Doctors",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        <Stack.Screen
-          name="Account"
-          component={Account}
-          options={{
-            headerShown: true,
-            headerTitle: "Account",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        <Stack.Screen
-          name="Hospital"
-          component={Hospital}
-          options={{
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        <Stack.Screen
-          name="Doctor"
-          component={Doctor}
-          options={{
-            headerShown: true,
-            headerTitle: "Doctor Detail",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate('Book')}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        <Stack.Screen
-          name="ChatList"
-          component={ChatList}
-          options={{
-            headerShown: true,
-            headerTitle: "Chat List",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        {/* route.params.user.photoURL === 'patient' ? route.params.doctor : route.params.patientName */}
-        <Stack.Screen
-          name="Chat"
-          component={Chat}
-          options={({ route }) => ({
-            title: (
-              <CustomButton
-                title={
-                  userDetail.photoURL === "patient"
-                    ? route.params.doctor
-                    : route.params.patientName
+    <>
+      <NavigationContainer theme={myTheme} ref={navigationRef}>
+        <Stack.Navigator
+          initialRouteName="Loading"
+          screenOptions={
+            Platform.OS === "android"
+              ? {
+                  headerStyle: { backgroundColor: myTheme.colors.secondary },
+                  headerTitleAlign: "center",
+                  headerBackTitleStyle: { marginBottom: "40%" },
+                  cardStyle: { backgroundColor: "white" },
                 }
-                raised={false}
-                type="clear"
-                titleStyle={{color:'black',fontSize:20}}
-                onPress={() => {
-                  navigate("Doctor", {
-                    email: route.params.doctorEmail,
-                  });
-                }}
-              />
-            ),
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-            headerRight: () => (
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  marginRight: 10,
-                }}
-              >
-                <Icon
-                  name="video-camera"
-                  type="font-awesome"
+              : {
+                  headerTitleStyle: { fontWeight: "bold" },
+                  headerStyle: { backgroundColor: "#C84771" },
+                  cardStyle: { backgroundColor: "white" },
+                }
+          }
+        >
+          <Stack.Screen
+            name="Loading"
+            component={Loading}
+            options={{
+              headerShown: false,
+            }}
+            initialParams={{ setisSignedIn }}
+          />
+
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{
+              gestureEnabled: false,
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="UserRegister"
+            component={UserRegistration}
+            options={{
+              headerShown: true,
+              headerTitle: "Sign Up",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Login")}
+                  titleStyle={{ color: "black" }}
+                />
+              ),
+            }}
+          />
+          <Stack.Screen
+            name="DoctorRegister"
+            component={DoctorRegister}
+            options={{
+              headerShown: true,
+              headerTitle: "Register",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Login")}
+                />
+              ),
+            }}
+          />
+          <Stack.Screen
+            name="HospitalRegister"
+            component={HospitalRegister}
+            options={{
+              headerShown: true,
+              headerTitle: "Register",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Login")}
+                />
+              ),
+            }}
+          />
+          <Stack.Screen
+            name="Doctor"
+            component={Doctor}
+            options={({navigation})=>({
+              headerShown: true,
+              headerTitle: "Doctor Detail",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigation.goBack()}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            })}
+          />
+          <Stack.Screen
+            name="Chat"
+            component={Chat}
+            options={({ route, navigation }) => ({
+              title: (
+                <CustomButton
+                  title={
+                    userDetail.photoURL === "patient"
+                      ? route.params.doctor
+                      : route.params.patientName
+                  }
+                  raised={false}
+                  type="clear"
+                  titleStyle={{ color: "black", fontSize: 20 }}
                   onPress={() => {
-                    navigate("VideoRoom");
+                    userDetail.photoURL === "patient"
+                      ? navigate("Doctor", {
+                          email: route.params.doctorEmail,
+                        })
+                      : navigate("PatientHistory", {
+                          patient: route.params.patientEmail,
+                        });
                   }}
                 />
-              </View>
-            ),
-          })}
-        />
-        <Stack.Screen name="VideoRoom" component={MeetingRoom} />
-        <Stack.Screen name="CameraRoom" component={CameraRoom} />
-        <Stack.Screen
-          name="PatientList"
-          component={PatientsList}
-          options={{
-            title: "Patient Lists",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("Dashboard")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-        />
-        {/* <Stack.Screen name="Test" component={Test} /> */}
-        <Stack.Screen
-          name="PatientHistory"
-          component={PatientHistory}
-          options={{
-            title: "",
-            headerLeft: () => (
-              <Button
-                title="Back"
-                type="clear"
-                onPress={() => navigate("PatientList")}
-              />
-            ),
-            cardStyle: { backgroundColor: "white" },
-          }}
-          // options={({ route }) => ({
-          //   title: route.params.details.user.photoURL === 'patient' ? route.params.details.user.patientName : null
-          // })}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+              ),
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigation.goBack()}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+              headerRight: () => (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    marginRight: 10,
+                  }}
+                >
+                  <Icon
+                    name="video-camera"
+                    type="font-awesome"
+                    onPress={() => {
+                      navigate("VideoRoom");
+                    }}
+                  />
+                </View>
+              ),
+            })}
+          />
+          <Stack.Screen
+            name="PatientHistory"
+            component={PatientHistory}
+            options={({ navigation }) => ({
+              title: "",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigation.goBack()}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            })}
+          />
+          <Stack.Screen
+            name="PatientList"
+            component={PatientsList}
+            options={({ navigation }) => ({
+              title: "Patient List",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => console.log(navigation)}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            })}
+          />
+          <Stack.Screen
+            name="Hospital"
+            component={Hospital}
+            options={({navigation})=>({
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigation.goBack()}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            })}
+          />
+          <Stack.Screen
+            name="Test"
+            component={Test}
+            options={{ headerShown: false, gestureEnabled: false }}
+          />
+
+          {/* <Tab.Navigator>
+            <Tab.Screen
+              name="Dashboard"
+              component={DashBoard}
+              options={{
+                gestureEnabled: false,
+                headerShown: false,
+                cardStyle: { backgroundColor: "white" },
+              }}
+            />
+          </Tab.Navigator> */}
+        </Stack.Navigator>
+        {/* <Stack.Navigator>
+
+          <Stack.Screen
+            name="Dashboard"
+            component={DashBoard}
+            options={{
+              gestureEnabled: false,
+              headerShown: false,
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="UserDetails"
+            component={UserDetails}
+            options={{
+              title: "Detail",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                  titleStyle={{ color: "white" }}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+              headerTitleStyle: { color: "white", fontSize: 18 },
+            }}
+          />
+
+          <Stack.Screen
+            name="Bookings"
+            component={Bookings}
+            options={{
+              headerShown: true,
+              headerTitle: "Bookings",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="Book"
+            component={BookAppointments}
+            options={{
+              headerShown: true,
+              headerTitle: "Book Appointment",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="DoctorList"
+            component={DoctorList}
+            options={{
+              headerShown: true,
+              headerTitle: "Doctors",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="Account"
+            component={Account}
+            options={{
+              headerShown: true,
+              headerTitle: "Account",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="Hospital"
+            component={Hospital}
+            options={{
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="Doctor"
+            component={Doctor}
+            options={{
+              headerShown: true,
+              headerTitle: "Doctor Detail",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="ChatList"
+            component={ChatList}
+            options={{
+              headerShown: true,
+              headerTitle: "Chat List",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+
+          <Stack.Screen
+            name="Chat"
+            component={Chat}
+            options={({ route }) => ({
+              title: (
+                <CustomButton
+                  title={
+                    userDetail.photoURL === "patient"
+                      ? route.params.doctor
+                      : route.params.patientName
+                  }
+                  raised={false}
+                  type="clear"
+                  titleStyle={{ color: "black", fontSize: 20 }}
+                  onPress={() => {
+                    userDetail.photoURL === "patient"
+                      ? navigate("Doctor", {
+                          email: route.params.doctorEmail,
+                        })
+                      : navigate("PatientHistory", {
+                          patient: route.params.patientEmail,
+                        });
+                  }}
+                />
+              ),
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+              headerRight: () => (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    marginRight: 10,
+                  }}
+                >
+                  <Icon
+                    name="video-camera"
+                    type="font-awesome"
+                    onPress={() => {
+                      navigate("VideoRoom");
+                    }}
+                  />
+                </View>
+              ),
+            })}
+          />
+          <Stack.Screen name="VideoRoom" component={MeetingRoom} />
+          <Stack.Screen name="CameraRoom" component={CameraRoom} />
+          <Stack.Screen
+            name="PatientList"
+            component={PatientsList}
+            options={{
+              title: "Patient List",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="HospitalPatientList"
+            component={HospitalPatientList}
+            options={{
+              title: "Patient List",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("Dashboard")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+
+          <Stack.Screen
+            name="PatientHistory"
+            component={PatientHistory}
+            options={{
+              title: "",
+              headerLeft: () => (
+                <Button
+                  title="Back"
+                  type="clear"
+                  onPress={() => navigate("PatientList")}
+                />
+              ),
+              cardStyle: { backgroundColor: "white" },
+            }}
+          />
+        </Stack.Navigator> */}
+      </NavigationContainer>
+    </>
   );
 };
 

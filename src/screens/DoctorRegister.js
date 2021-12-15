@@ -135,7 +135,8 @@ function DoctorRegister(props) {
             availableTimes: inputs.availableTimes.split(","),
             hospital: details.name,
             reviews: [],
-            photoURL:'doctor'
+            photoURL:'doctor',
+            password:inputs.password
           })
           .then(() => {
             alert(`Dr ${inputs.fname} added`);
@@ -430,7 +431,7 @@ function DoctorRegister(props) {
                     inputStyle={styles.doctorInputInside}
                     label="Time"
                     labelStyle={styles.labels}
-                    placeholder="e.g. 12:00,5:00"
+                    placeholder="e.g. 12:00,05:00,06:00...."
                     onChangeText={(text) =>
                       setinputs({ ...inputs, availableTimes: text })
                     }

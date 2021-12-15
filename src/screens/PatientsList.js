@@ -5,13 +5,14 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions
 } from "react-native";
 import firebase from "firebase";
 import LoginContext from "../context/LoginContext";
 import { ListItem } from "react-native-elements";
 
 const db = firebase.firestore();
-
+const height = Dimensions.get('window').height
 export default function PatientsList(props) {
   const { userDetail } = useContext(LoginContext);
   const [list, setlist] = useState();
@@ -39,7 +40,8 @@ export default function PatientsList(props) {
           props.navigation.navigate('PatientHistory',
           {patient:item.pateintEmail}
           )
-      }}>
+      }}
+      >
         <ListItem>
             <ListItem.Title>{item.patientName}</ListItem.Title>
         </ListItem>
@@ -52,11 +54,12 @@ export default function PatientsList(props) {
   }, []);
 
   return (
-    <View>
+    <View style={{height:height,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}}>
       <FlatList
         data={list}
         keyExtractor={item=>item.id}
         renderItem={renderPatients}
+        style={{width:'90%'}}
       />
     </View>
   );

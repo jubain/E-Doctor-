@@ -29,8 +29,11 @@ function ChatList(props) {
     }
 
     const renderItem = ({ item }) => (
-        <TouchableOpacity onLongPress={() => console.log("hello")} onPress={() => props.navigation.navigate('Chat', {
-            item:item
+        <TouchableOpacity onPress={() =>props.navigation.navigate("Chat",{
+            time: item.time,
+            date:item.date,
+            doctorEmail:item.doctorEmail,
+            patientEmail:item.pateintEmail
         })}>
             <ListItem bottomDivider>
                 <Avatar source={{ uri: item.avatar_url }} />

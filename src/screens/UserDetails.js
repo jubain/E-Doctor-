@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "90%",
-    marginBottom: 30,
+    marginVertical:40
   },
   gender: {
     display: "flex",

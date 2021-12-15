@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
+  Dimensions,
 } from "react-native";
 import {
   Avatar,
@@ -14,6 +15,7 @@ import {
   SearchBar,
   ListItem,
   Overlay,
+  Card,
 } from "react-native-elements";
 import firebase from "firebase";
 import * as Location from "expo-location";
@@ -22,9 +24,13 @@ import LoginContext from "../context/LoginContext";
 import CustomText from "../components/CustomText";
 import CustomButton from "../components/CustomButton";
 import LoadingIndicator from "../components/LoadingIndicator";
+import * as ImagePicker from "expo-image-picker";
 
 var db = firebase.firestore();
+const height = Dimensions.get("window").height;
 
+const date = new Date();
+const day = `${date}`;
 function DashBoard(props) {
   const { userDetail } = useContext(LoginContext);
   const [location, setLocation] = useState(null);
@@ -36,10 +42,13 @@ function DashBoard(props) {
   const [userTypedHospital, setuserTypedHospital] = useState();
   const [loading, setloading] = useState(false);
   const [signoutLoading, setsignoutLoading] = useState(false);
+  const [newtotalBookings, setNewtotalBookings] = useState(null);
+  const [oldTotalBookings, setoldTotalBookings] = useState(null);
+  const [totalDoctors, settotalDoctors] = useState("");
+  const [totalPatients, settotalPatients] = useState("");
   // Theme
   const { colors } = useTheme();
   // End theme
-  console.log(userDetail.photoURL)
   const getHospital = () => {
     setloading(false);
     let tempArray = [];
@@ -107,17 +116,45 @@ function DashBoard(props) {
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
-      }
+  // function getNewBookingDataInNumber(collection) {
+  //   let tempArray1 = [];
+  //   let tempArray2 = [];
+  //   db.collection(collection)
+  //     .where("date",">",day.slice(4, 15))
+  //     .where(userDetail.photoURL==="patient"?"pateintEmail":"doctorEmail","==",userDetail.email)
+  //     .get()
+  //     .then((querySnapshot) => {
+  //       console.log(querySnapshot.size)
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+  // }
+  function getOld(params) {}
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
+  useEffect(() => {
+    // (async () => {
+    //   let { status } = await Location.requestForegroundPermissionsAsync();
+    //   if (status !== "granted") {
+    //     setErrorMsg("Permission to access location was denied");
+    //     return;
+    //   }
+
+    //   let location = await Location.getCurrentPositionAsync({});
+    //   setLocation(location);
+    // })();
+    (async () => {
+      if (Platform.OS !== "web") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          alert("Sorry, we need camera roll permissions to make this work!");
+        }
+      }
     })();
+    // if (userDetail.photoURL === "patient" || userDetail.photoURL === "doctor") {
+    //   getNewBookingDataInNumber("bookings");
+    // }
   }, []);
 
   let text = "Waiting..";
@@ -131,6 +168,7 @@ function DashBoard(props) {
     <View
       style={Platform.OS === "android" ? styles.container2 : styles.container}
     >
+      {console.log(userDetail)}
       <View style={styles.avatar}>
         <Avatar
           rounded
@@ -161,7 +199,7 @@ function DashBoard(props) {
             buttonStyle={styles.settingButtons}
             onPress={() => {
               setsignoutLoading(true);
-              toggleOverlay()
+              toggleOverlay();
               firebase
                 .auth()
                 .signOut()
@@ -290,10 +328,26 @@ function DashBoard(props) {
         />
       </View>
 
-      <View style={{ alignSelf: "stretch", paddingHorizontal: 20 }}>
-        <CustomText word="What do you need?" size={18} weight="bold" style={{color:'white'}} />
-      </View>
-      <View style={styles.buttonsContainer}>
+      <Card containerStyle={{ backgroundColor: colors.secondary }}>
+        <Card.Title style={{ color: "white" }}>New Bookings</Card.Title>
+        <Card.Divider />
+        <View style={{ alignItems: "center" }}>
+          {/* <CustomText
+            word={totalBookings}
+            style={{ color: "white", fontSize: 50 }}
+          /> */}
+        </View>
+      </Card>
+
+      {/* <View style={{ alignSelf: "stretch", paddingHorizontal: 20 }}>
+        <CustomText
+          word="What do you need?"
+          size={18}
+          weight="bold"
+          style={{ color: "black" }}
+        />
+      </View> */}
+      {/* <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={styles.button}
           onPress={() =>
@@ -309,7 +363,7 @@ function DashBoard(props) {
           )}
 
           <CustomText
-            word={userDetail.photoURL == "hospital" ?  "Doctors" :"Bookings"}
+            word={userDetail.photoURL == "hospital" ? "Doctors" : "Bookings"}
             color="white"
             padding={7}
             size={12}
@@ -388,7 +442,7 @@ function DashBoard(props) {
             </TouchableOpacity>
           </>
         ) : null}
-      </View>
+      </View> */}
     </View>
   );
 }
@@ -396,16 +450,16 @@ const styles = StyleSheet.create({
   container: {
     display: "flex",
     alignItems: "center",
-    paddingTop: "15%",
-    justifyContent: "center",
+    justifyContent: "space-evenly",
     backgroundColor: "white",
+    height: height,
   },
   container2: {
     display: "flex",
     alignItems: "center",
-    paddingTop: "20%",
-    justifyContent: "center",
+    justifyContent: "space-evenly",
     backgroundColor: "white",
+    height: height,
   },
   avatar: {
     display: "flex",
@@ -417,7 +471,7 @@ const styles = StyleSheet.create({
   greeting: {
     alignSelf: "stretch",
     paddingHorizontal: 20,
-    paddingVertical: 50,
+    paddingVertical: 20,
   },
   userAndPill: {
     display: "flex",
@@ -436,16 +490,13 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.39,
     shadowRadius: 8.3,
-    borderWidth: 0,
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
+    borderWidth: 1,
   },
   card: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
     width: "90%",
-    height: "30%",
     marginTop: 20,
     justifyContent: "center",
     backgroundColor: "#C84771",
@@ -459,6 +510,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+    paddingVertical: 20,
   },
   buttonsContainer: {
     display: "flex",
@@ -500,8 +552,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   settingButtons: {
-    width: "100%",
     height: 50,
+    width: "100%",
   },
 });
 

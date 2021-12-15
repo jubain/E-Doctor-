@@ -9,11 +9,12 @@ function Loading(props) {
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         getCurrentUser(user);
-        props.navigation.navigate("Dashboard", {
-          user: user,
-        });
+        props.route.params.setisSignedIn(true)
+        props.navigation.navigate('Test')
+        
       } else {
-        props.navigation.navigate("Login");
+        props.route.params.setisSignedIn(false)
+        props.navigation.navigate('Login')
       }
     });
   };
