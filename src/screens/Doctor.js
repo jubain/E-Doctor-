@@ -243,7 +243,7 @@ function Doctor(props) {
       });
   };
   const Booking = () => (
-    <View>
+    <View style={{height:'100%',display:'flex',flexDirection:'column',alignItems:'flex-start',justifyContent:'space-evenly',paddingHorizontal:10}}>
       <View
         style={{
           display: "flex",
@@ -251,6 +251,7 @@ function Doctor(props) {
           alignItems: "center",
           flexDirection: "row",
           paddingTop: 10,
+          width:'100%'
         }}
       >
         <Text>Time:</Text>
@@ -277,10 +278,11 @@ function Doctor(props) {
           justifyContent: "space-evenly",
           alignItems: "center",
           flexDirection: "row",
+          width:'100%'
         }}
       >
         <Text>
-          {userDetail.photoURL == "hospital" ? "Set new Time:" : "Date"}
+          {userDetail.photoURL == "hospital" ? "Set new Time:" : "Date:"}
         </Text>
         {userDetail.photoURL != "hospital" ? (
           show != true && (
@@ -317,7 +319,7 @@ function Doctor(props) {
             value={date}
             mode={mode}
             is24Hour={true}
-            display="default"
+            display="calendar"
             onChange={onChange}
             style={{
               height: 50,

@@ -5,7 +5,8 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Dimensions
+  Dimensions,
+  SafeAreaView,
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import {
@@ -23,49 +24,57 @@ import CustomText from "../components/CustomText";
 import CustomButton from "../components/CustomButton";
 
 const faculties = [
-  {
-    id: 1,
-    name: "Pediatric",
-    icon: "baby",
-    type: "font-awesome-5",
-    iconName: "baby",
-  },
-  {
-    id: 2,
-    name: "Dentist",
-    icon: "teeth",
-    type: "font-awesome-5",
-    iconName: "tooth",
-  },
-  {
-    id: 3,
-    name: "Neurologist",
-    icon: "barin",
-    type: "font-awesome-5",
-    iconName: "brain",
-  },
+  "Pediatric",
+  "Dentist",
+  "Neurologist",
+  "Dermatologist",
+  "Cardiatric",
+  "Physiotherapist",
+  "Gynocologist",
+  "Orthopedic",
+  // {
+  //   id: 1,
+  //   name: "Pediatric",
+  //   icon: "baby",
+  //   type: "font-awesome-5",
+  //   iconName: "baby",
+  // },
+  // {
+  //   id: 2,
+  //   name: "Dentist",
+  //   icon: "teeth",
+  //   type: "font-awesome-5",
+  //   iconName: "tooth",
+  // },
+  // {
+  //   id: 3,
+  //   name: "Neurologist",
+  //   icon: "barin",
+  //   type: "font-awesome-5",
+  //   iconName: "brain",
+  // },
 
-  {
-    id: 4,
-    name: "Cardiatics",
-    icon: "baby",
-    type: "font-awesome-5",
-    iconName: "hand-holding-heart",
-  },
-  {
-    id: 5,
-    name: "Female",
-    icon: "baby",
-    type: "font-awesome-5",
-    iconName: "female",
-  },
-  {
-    id: 6,
-    name: "Orthopedic",
-    icon: "baby",
-    type: "font-awesome-5",
-    iconName: "bone",
-  },
+  // {
+  //   id: 4,
+  //   name: "Cardiatics",
+  //   icon: "baby",
+  //   type: "font-awesome-5",
+  //   iconName: "hand-holding-heart",
+  // },
+  // {
+  //   id: 5,
+  //   name: "Female",
+  //   icon: "baby",
+  //   type: "font-awesome-5",
+  //   iconName: "female",
+  // },
+  // {
+  //   id: 6,
+  //   name: "Orthopedic",
+  //   icon: "baby",
+  //   type: "font-awesome-5",
+  //   iconName: "bone",
+  // },
 ];
 
 const location = [
@@ -77,7 +86,7 @@ const location = [
   "Butwal",
 ];
 
-const height = Dimensions.get('window').height
+const height = Dimensions.get("window").height;
 
 function BookAppointments(props) {
   const [hospitalList, sethospitalList] = useState();
@@ -90,6 +99,7 @@ function BookAppointments(props) {
   const [hospitalLoading, sethospitalLoading] = useState(false);
   const [doctorLoading, setdoctorLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [iconName, seticonName] = useState("");
   const list = [
     { title: "List Item 1" },
     { title: "List Item 2" },
@@ -110,11 +120,11 @@ function BookAppointments(props) {
 
   const db = firebase.firestore();
 
-  const findHospitals = () => {
+  const findHospitals = (location) => {
     sethospitalLoading(true);
     setdoctorList();
     db.collection("hospitals")
-      .where("location", "==", userlocation)
+      .where("location", "==", location)
       .get()
       .then((querySnapshot) => {
         let tempArray = [];
@@ -146,8 +156,7 @@ function BookAppointments(props) {
   const { colors } = useTheme();
   // End theme
 
-  const [userDepartmentPick, setuserDepartmentPick] =
-    useState("Select Department");
+  const [userDepartmentPick, setuserDepartmentPick] = useState("Please Select");
 
   // const onSelectDepartment = (department) => {
   //     setuserDepartmentPick(department)
@@ -242,7 +251,6 @@ function BookAppointments(props) {
   };
 
   const findDoctor = () => {
-    //db.collection("doctors").where("faculty", "==", userDepartmentPick)
     setdoctorLoading(true);
     if (
       userlocation === "" ||
@@ -265,7 +273,7 @@ function BookAppointments(props) {
             setTimeout(() => {
               setdoctorLoading(false);
               setdoctorList();
-            }, 1000);
+            }, 500);
           } else {
             querySnapshot.forEach((doc) => {
               // doc.data() is never undefined for query doc snapshots
@@ -289,15 +297,43 @@ function BookAppointments(props) {
     }
   };
 
+  const checkIcon = (selectedItem) => {
+    switch (selectedItem) {
+      case "Cardiatric":
+        seticonName("heart");
+        break;
+      case "Dentist":
+        seticonName("tooth");
+        break;
+      case "Neurologist":
+        seticonName("brain");
+        break;
+      case "Pediatric":
+        seticonName("baby");
+        break;
+      case "Gynocologist":
+        seticonName("female");
+        break;
+      case "Orthopedic":
+        seticonName("bone");
+        break;
+      case "Dermatologist":
+        seticonName("hand-sparkles");
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <View
+    <SafeAreaView
       style={{
         backgroundColor: colors.primary,
         height: height,
         display: "flex",
         alignItems: "center",
         position: "relative",
-        justifyContent:'space-evenly'
+        justifyContent: "space-evenly",
       }}
     >
       <Overlay
@@ -359,14 +395,27 @@ function BookAppointments(props) {
           </View>
         </View>
       </Overlay>
+      <CustomText
+        word="FIND DOCTOR"
+        style={{
+          color: "black",
+          fontWeight: "bold",
+          fontSize: 20,
+          letterSpacing: 5,
+        }}
+      />
       <View style={styles.informationContainer}>
-        <CustomText word="Hospital Location" style={styles.text} size={14} />
+        <CustomText
+          word={`1. Select Hospital Location`}
+          style={styles.text}
+          size={14}
+        />
         <SelectDropdown
           data={location}
           defaultButtonText={userlocation}
           onSelect={(selectedItem, index) => {
             setlocation(selectedItem);
-            findHospitals();
+            findHospitals(selectedItem);
           }}
           buttonStyle={{
             borderRadius: 5,
@@ -374,16 +423,13 @@ function BookAppointments(props) {
             height: 40,
             backgroundColor: colors.secondary,
           }}
-          buttonTextStyle={{ fontSize: 15, color: "white" }}
+          buttonTextStyle={{ fontSize: 15, color: "white", fontWeight: "bold" }}
           rowTextStyle={{ fontSize: 15 }}
         />
       </View>
+
       <View style={styles.informationContainer}>
-        <CustomText word="Doctor Speciality" style={styles.text} size={14} />
-        <CustomButton title={userDepartmentPick} onPress={toggleOverlay} />
-      </View>
-      <View style={styles.informationContainer}>
-        <CustomText word="Choose Hospital" style={styles.text} size={14} />
+        <CustomText word="2. Choose Hospital" style={styles.text} size={14} />
         {hospitalLoading === true ? (
           <>
             <CustomText word="Searching" style={{ color: "grey" }} />
@@ -415,11 +461,47 @@ function BookAppointments(props) {
               }}
             />
           )
-        ) : null}
+        ) : (
+          <CustomText word="0 Result Found" style={{ color: "black" }} />
+        )}
+      </View>
+      <View style={styles.informationContainer}>
+        <CustomText
+          word="3. Pick Doctor Speciality"
+          style={styles.text}
+          size={14}
+        />
+        {/* <CustomButton title={userDepartmentPick} onPress={toggleOverlay} /> */}
+        <SelectDropdown
+          data={faculties}
+          defaultButtonText={userDepartmentPick}
+          onSelect={(selectedItem, index) => {
+            setuserDepartmentPick(selectedItem);
+            checkIcon(selectedItem);
+          }}
+          buttonStyle={{
+            borderRadius: 5,
+            width: 130,
+            height: 40,
+            backgroundColor: colors.secondary,
+          }}
+          buttonTextStyle={{ fontSize: 15, color: "white", fontWeight: "bold" }}
+          rowTextStyle={{ fontSize: 15 }}
+          dropdownIconPosition="left"
+          renderDropdownIcon={() => (
+            <Icon color="white" name={iconName} type="font-awesome-5" />
+          )}
+        />
       </View>
       <View style={{ width: "90%" }}>
         <CustomButton
-          title="Search"
+          title={
+            doctorLoading === true ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              "Search Doctor"
+            )
+          }
           onPress={findDoctor}
           buttonStyle={{ height: 50 }}
         />
@@ -435,7 +517,7 @@ function BookAppointments(props) {
                 key={i}
                 containerStyle={l.containerStyle}
                 onPress={() => {
-                  setIsVisible(false)
+                  setIsVisible(false);
                   props.navigation.navigate("Doctor", {
                     item: l,
                     email: l.email,
@@ -460,7 +542,7 @@ function BookAppointments(props) {
             ))
           : null}
         <CustomButton
-          title="Cancel"
+          title="Close"
           buttonStyle={{ paddingVertical: 20 }}
           onPress={() => setIsVisible(false)}
         />
@@ -478,18 +560,8 @@ function BookAppointments(props) {
           />
         </>
       ) : null}
-    </View>
+    </SafeAreaView>
   );
-  {
-    /* {userDepartmentPick !== "" ? (
-        <FlatList
-          data={doctorList}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.email}
-          style={{ width: "100%" }}
-        />
-      ) : null} */
-  }
 }
 
 const styles = StyleSheet.create({

@@ -335,10 +335,10 @@ function DoctorRegister(props) {
             secureTextEntry={true}
           />
         </View>
-        <View>
+        {/* <View>
           <Button title="Add Doctor" onPress={addClick}></Button>
-        </View>
-        {values.val.map((el, i) => {
+        </View> */}
+        {/* {values.val.map((el, i) => {
           return (
             <View style={styles.doctorMainContainer}>
               <View style={styles.doctorContainer}>
@@ -464,7 +464,7 @@ function DoctorRegister(props) {
               </View>
             </View>
           );
-        })}
+        })} */}
         {/* <View style={{ marginTop: 50 }}>
           <Input
             style={styles.inputText}

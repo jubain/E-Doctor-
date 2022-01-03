@@ -5,16 +5,18 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import firebase from "firebase";
 import LoginContext from "../context/LoginContext";
 import { ListItem } from "react-native-elements";
+import CustomText from "../components/CustomText";
 
 const db = firebase.firestore();
-const height = Dimensions.get('window').height
+const height = Dimensions.get("window").height;
 export default function PatientsList(props) {
   const { userDetail } = useContext(LoginContext);
+  const [patientsFound, setpatientsFound] = useState("")
   const [list, setlist] = useState();
   const getPatients = () => {
     let tempArray = [];
@@ -23,11 +25,15 @@ export default function PatientsList(props) {
       .where("pateintEmail", "==", "patient@patient.com")
       .get()
       .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          // doc.data() is never undefined for query doc snapshots
-          tempArray.push(doc.data())
-        });
-        setlist(tempArray)
+        if (querySnapshot.empty) {
+          setpatientsFound("0 Patient Found.")
+        } else {
+          querySnapshot.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
+            tempArray.push(doc.data());
+          });
+          setlist(tempArray);
+        }
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
@@ -36,14 +42,15 @@ export default function PatientsList(props) {
 
   const renderPatients = ({ item }) => {
     return (
-      <TouchableOpacity onPress={()=>{
-          props.navigation.navigate('PatientHistory',
-          {patient:item.pateintEmail}
-          )
-      }}
+      <TouchableOpacity
+        onPress={() => {
+          props.navigation.navigate("PatientHistory", {
+            patient: item.pateintEmail,
+          });
+        }}
       >
         <ListItem>
-            <ListItem.Title>{item.patientName}</ListItem.Title>
+          <ListItem.Title>{item.patientName}</ListItem.Title>
         </ListItem>
       </TouchableOpacity>
     );
@@ -54,12 +61,21 @@ export default function PatientsList(props) {
   }, []);
 
   return (
-    <View style={{height:height,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}}>
+    <View
+      style={{
+        height: height,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <CustomText word={patientsFound} style={{color:'black'}}/>
       <FlatList
         data={list}
-        keyExtractor={item=>item.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderPatients}
-        style={{width:'90%'}}
+        style={{ width: "90%" }}
       />
     </View>
   );

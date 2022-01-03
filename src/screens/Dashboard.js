@@ -25,6 +25,7 @@ import CustomText from "../components/CustomText";
 import CustomButton from "../components/CustomButton";
 import LoadingIndicator from "../components/LoadingIndicator";
 import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 var db = firebase.firestore();
 const height = Dimensions.get("window").height;
@@ -42,21 +43,27 @@ function DashBoard(props) {
   const [userTypedHospital, setuserTypedHospital] = useState();
   const [loading, setloading] = useState(false);
   const [signoutLoading, setsignoutLoading] = useState(false);
-  const [newtotalBookings, setNewtotalBookings] = useState(null);
-  const [oldTotalBookings, setoldTotalBookings] = useState(null);
-  const [totalDoctors, settotalDoctors] = useState("");
-  const [totalPatients, settotalPatients] = useState("");
+  const [bookings, setbookings] = useState(null);
+  const [newBookings, setnewBookings] = useState("");
+  const [oldBookings, setoldBookings] = useState("");
   // Theme
   const { colors } = useTheme();
   // End theme
-  const getHospital = () => {
+  const getDetail = () => {
     setloading(false);
     let tempArray = [];
-    db.collection("hospitals")
+    db.collection(
+      userDetail.photoURL === "patient"
+        ? "users"
+        : userDetail.photoURL === "doctor"
+        ? "doctors"
+        : "hospitals"
+    )
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           tempArray.push(doc.data());
+          console.log(doc.data());
         });
         setfoundHospitals(tempArray);
       })
@@ -86,24 +93,24 @@ function DashBoard(props) {
   // Setting Overlay Ends
 
   useEffect(() => {
-    getHospital();
+    getDetail();
   }, []);
 
   const renderItem = ({ item }) => {
     return (
-      <TouchableOpacity
+      <ListItem
+        bottomDivider
         onPress={() => {
           props.navigation.navigate("Hospital", {
             item: item,
           });
         }}
+        style={{ borderWidth: 1, elevation: 10 }}
       >
-        <ListItem bottomDivider>
-          <ListItem.Content>
-            <ListItem.Title>{item}</ListItem.Title>
-          </ListItem.Content>
-        </ListItem>
-      </TouchableOpacity>
+        <ListItem.Content>
+          <ListItem.Title>{item}</ListItem.Title>
+        </ListItem.Content>
+      </ListItem>
     );
   };
 
@@ -116,21 +123,35 @@ function DashBoard(props) {
     }
   };
 
-  // function getNewBookingDataInNumber(collection) {
-  //   let tempArray1 = [];
-  //   let tempArray2 = [];
-  //   db.collection(collection)
-  //     .where("date",">",day.slice(4, 15))
-  //     .where(userDetail.photoURL==="patient"?"pateintEmail":"doctorEmail","==",userDetail.email)
-  //     .get()
-  //     .then((querySnapshot) => {
-  //       console.log(querySnapshot.size)
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
-  // }
-  function getOld(params) {}
+  function getNewBookingDataInNumber(collection) {
+    let tempArray = [];
+    db.collection(collection)
+      .where(
+        userDetail.photoURL === "patient" ? "pateintEmail" : "doctorEmail",
+        "==",
+        userDetail.email
+      )
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          tempArray.push(doc.data().date);
+        });
+        setbookings(tempArray);
+        checkBookingDate();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  function checkBookingDate() {
+    if (bookings != null) {
+      const newBooking = bookings.filter((date) => date > day.slice(4, 15));
+      const oldBooking = bookings.filter((date) => date < day.slice(4, 15));
+      setnewBookings(newBooking.length);
+      setoldBookings(oldBooking.length);
+    }
+  }
 
   useEffect(() => {
     // (async () => {
@@ -152,9 +173,10 @@ function DashBoard(props) {
         }
       }
     })();
-    // if (userDetail.photoURL === "patient" || userDetail.photoURL === "doctor") {
-    //   getNewBookingDataInNumber("bookings");
-    // }
+    if (userDetail.photoURL === "patient" || userDetail.photoURL === "doctor") {
+      getNewBookingDataInNumber("bookings");
+      //getOldBookingDataInNumber("bookings");
+    }
   }, []);
 
   let text = "Waiting..";
@@ -165,10 +187,9 @@ function DashBoard(props) {
   }
 
   return (
-    <View
+    <SafeAreaView
       style={Platform.OS === "android" ? styles.container2 : styles.container}
     >
-      {console.log(userDetail)}
       <View style={styles.avatar}>
         <Avatar
           rounded
@@ -327,123 +348,43 @@ function DashBoard(props) {
           style={{ width: 100, height: 100 }}
         />
       </View>
-
-      <Card containerStyle={{ backgroundColor: colors.secondary }}>
-        <Card.Title style={{ color: "white" }}>New Bookings</Card.Title>
-        <Card.Divider />
-        <View style={{ alignItems: "center" }}>
-          {/* <CustomText
-            word={totalBookings}
-            style={{ color: "white", fontSize: 50 }}
-          /> */}
-        </View>
-      </Card>
-
-      {/* <View style={{ alignSelf: "stretch", paddingHorizontal: 20 }}>
-        <CustomText
-          word="What do you need?"
-          size={18}
-          weight="bold"
-          style={{ color: "black" }}
-        />
-      </View> */}
-      {/* <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() =>
-            props.navigation.navigate(
-              userDetail.photoURL == "hospital" ? "DoctorList" : "Bookings"
-            )
-          }
-        >
-          {userDetail.photoURL == "hospital" ? (
-            <Icon type="fontisto" name="doctor" color="white" />
-          ) : (
-            <Icon type="ant-design" name="book" color="white" />
-          )}
-
-          <CustomText
-            word={userDetail.photoURL == "hospital" ? "Doctors" : "Bookings"}
-            color="white"
-            padding={7}
-            size={12}
-          />
-        </TouchableOpacity>
-
-        {userDetail.photoURL == "patient" ? (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => props.navigation.navigate("Book", {})}
-          >
-            <Icon type="fontisto" name="doctor" color="white" />
-            <CustomText
-              word="Find Doctor"
-              color="white"
-              padding={7}
-              size={12}
-            />
-          </TouchableOpacity>
-        ) : null}
-        {userDetail.photoURL == "patient" || userDetail.photoURL == "doctor" ? (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              props.navigation.navigate("ChatList", {
-                //user: user,
-              })
-            }
-          >
-            <Icon type="fontisto" name="hipchat" color="white" />
-            <CustomText
-              word="Chat History"
-              color="white"
-              padding={7}
-              size={12}
-            />
-          </TouchableOpacity>
-        ) : null}
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            props.navigation.navigate(
-              userDetail.photoURL === "doctor"
-                ? "PatientList"
-                : userDetail.photoURL === "patient"
-                ? "UserDetails"
-                : "HospitalPatientList"
-            );
+      <View style={{ display: "flex", flexDirection: "row" }}>
+        <Card
+          containerStyle={{
+            backgroundColor: colors.secondary,
+            borderRadius: 10,
           }}
         >
-          <Icon type="font-awesome-5" name="book-medical" color="white" />
-          <CustomText
-            word={
-              userDetail.photoURL == "patient"
-                ? "Profile"
-                : userDetail.photoURL === "doctor"
-                ? "Patients History"
-                : "Patients"
-            }
-            color="white"
-            padding={7}
-            style={{ paddingHorizontal: 1 }}
-          />
-        </TouchableOpacity>
-        {userDetail.photoURL == "patient" ? (
-          <>
-            <TouchableOpacity style={styles.button} onPress={fetchAPI}>
-              <Icon type="font-awesome" name="ambulance" color="white" />
-              <CustomText word="Call Ambulance" color="white" padding={7} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.button}>
-              <Icon type="font-awesome-5" name="clinic-medical" color="white" />
-              <CustomText word="Find Pharmacy" color="white" padding={7} />
-            </TouchableOpacity>
-          </>
-        ) : null}
-      </View> */}
-    </View>
+          <Card.Title style={{ color: "white" }}>Upcoming Bookings</Card.Title>
+          <Card.Divider />
+          <View style={{ alignItems: "center" }}>
+            {newBookings != "" ? (
+              <CustomText
+                word={newBookings}
+                style={{ color: "white", fontSize: 50 }}
+              />
+            ) : null}
+          </View>
+        </Card>
+        <Card
+          containerStyle={{
+            backgroundColor: colors.secondary,
+            borderRadius: 10,
+          }}
+        >
+          <Card.Title style={{ color: "white" }}>Old Bookings</Card.Title>
+          <Card.Divider />
+          <View style={{ alignItems: "center" }}>
+            {oldBookings != "" ? (
+              <CustomText
+                word={oldBookings}
+                style={{ color: "white", fontSize: 50 }}
+              />
+            ) : null}
+          </View>
+        </Card>
+      </View>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
@@ -452,7 +393,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
     backgroundColor: "white",
-    height: height,
+    height: height - 50,
   },
   container2: {
     display: "flex",

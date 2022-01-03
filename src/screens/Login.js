@@ -34,6 +34,7 @@ function Login(props) {
           var errorMessage = error.message;
           setloading(false);
           alert(error);
+          console.log(error)
         });
     } else {
       seterrorMessage("Empty Field");

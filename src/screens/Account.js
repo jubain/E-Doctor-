@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -16,6 +17,8 @@ import firebase from "firebase";
 import { useTheme } from "@react-navigation/native";
 import { ListItem } from "react-native-elements/dist/list/ListItem";
 import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
+import UserDetails from "./UserDetails";
 const height = Dimensions.get("window").height;
 const width = Dimensions.get("window").width;
 
@@ -26,6 +29,10 @@ export default function Account(props) {
   const { colors } = useTheme();
   const [editPressed1, seteditPressed1] = useState(false);
   const [editPressed2, seteditPressed2] = useState(false);
+  const [editName, seteditName] = useState(false);
+  const [editPressedAddress, seteditPressedAddress] = useState(false);
+  const [firstNamePressed, setfirstNamePressed] = useState(false);
+  const [lastNamePressed, setlastNamePressed] = useState(false);
 
   const onEditPress1 = (e) => {
     seteditPressed1(!editPressed1);
@@ -33,7 +40,18 @@ export default function Account(props) {
   const onEditPress2 = (e) => {
     seteditPressed2(!editPressed2);
   };
-
+  const onEditPressAddress = (e) => {
+    seteditPressedAddress(!editPressedAddress);
+  };
+  const onEditPressName = (e) => {
+    seteditName(!editName);
+  };
+  const onFirstNamePressed = (e) => {
+    setfirstNamePressed(true);
+  };
+  const onLastNamePressed = (e) => {
+    setlastNamePressed(true);
+  };
   // Modal
   const [visible, setVisible] = useState(false);
 
@@ -100,20 +118,85 @@ export default function Account(props) {
       }
     );
   };
-
   // End Submit changes
+
+  //Save changes
+  const change = (location) => {
+    db.collection(location)
+      .where("email", "==", userDetail.email)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          db.collection(location).doc(doc.id).set(state);
+        });
+        alert("Information Updated");
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
+  };
+  const saveChanges = () => {
+    if (userDetail.photoURL === "patient") {
+      change("users");
+    } else if (userDetail.photoURL === "hospital") {
+      change("hospitals");
+    } else {
+      change("doctors");
+    }
+  };
 
   // Tabs
   const FirstRoute = () =>
     state !== null ? (
-      <View style={styles.topContainer}>
-        <Input
-          label="Name"
-          value={state.name}
-          inputContainerStyle={styles.input}
-          inputStyle={styles.inputValue}
-          disabled
-        />
+      <ScrollView contentContainerStyle={styles.detailContainer}>
+        {userDetail.photoURL === "patient" ||
+        userDetail.photoURL === "doctor" ? (
+          <>
+            <Input
+              label="First Name"
+              value={state.fName}
+              inputContainerStyle={styles.input}
+              inputStyle={styles.inputValue}
+              disabled={firstNamePressed === true ? false : true}
+              rightIcon={
+                <Icon
+                  name="edit-3"
+                  type="feather"
+                  onPress={onFirstNamePressed}
+                />
+              }
+              onChangeText={(text) => setstate({ ...state, fName: text })}
+            />
+            <Input
+              label="Last Name"
+              value={state.lName}
+              inputContainerStyle={styles.input}
+              inputStyle={styles.inputValue}
+              disabled={lastNamePressed === true ? false : true}
+              rightIcon={
+                <Icon
+                  name="edit-3"
+                  type="feather"
+                  onPress={onLastNamePressed}
+                />
+              }
+              onChangeText={(text) => setstate({ ...state, lName: text })}
+            />
+          </>
+        ) : (
+          <Input
+            label="Name"
+            value={state.name}
+            inputContainerStyle={styles.input}
+            inputStyle={styles.inputValue}
+            rightIcon={
+              <Icon name="edit-3" type="feather" onPress={onEditPressName} />
+            }
+            disabled={editName === true ? false : true}
+            onChangeText={(text) => setstate({ ...state, name: text })}
+          />
+        )}
+
         <Input
           label="Email"
           value={state.email}
@@ -130,29 +213,39 @@ export default function Account(props) {
             <Icon name="edit-3" type="feather" onPress={onEditPress1} />
           }
           disabled={editPressed1 === true ? false : true}
+          onChangeText={(text) => setstate({ ...state, phone: text })}
         />
         <Input
-          label="Location"
+          label="Address"
           value={state.location}
           inputContainerStyle={styles.input}
           inputStyle={styles.inputValue}
-          disabled
-        />
-        <Input
-          label="Website"
-          value={state.website}
-          inputContainerStyle={styles.input}
-          inputStyle={styles.inputValue}
+          disabled={editPressedAddress === true ? false : true}
           rightIcon={
-            <Icon name="edit-3" type="feather" onPress={onEditPress2} />
+            <Icon name="edit-3" type="feather" onPress={onEditPressAddress} />
           }
-          disabled={editPressed2 === true ? false : true}
+          onChangeText={(text) => setstate({ ...state, location: text })}
         />
+        {userDetail.photoURL === "hospital" ? (
+          <Input
+            label="Website"
+            value={state.website}
+            inputContainerStyle={styles.input}
+            inputStyle={styles.inputValue}
+            rightIcon={
+              <Icon name="edit-3" type="feather" onPress={onEditPress2} />
+            }
+            disabled={editPressed2 === true ? false : true}
+            onChangeText={(text) => setstate({ ...state, website: text })}
+          />
+        ) : null}
+
         <CustomButton
           title="Save"
           buttonStyle={{ width: "100%", height: 40 }}
+          onPress={saveChanges}
         />
-      </View>
+      </ScrollView>
     ) : null;
   const renderReviews = ({ item }) => {
     return (
@@ -176,14 +269,22 @@ export default function Account(props) {
       ) : null}
     </View>
   );
+  const ForthRoute = () => (
+    <View>
+      <UserDetails />
+    </View>
+  );
   const renderScene = SceneMap({
     first: FirstRoute,
-    second: SecondRoute,
+    second: userDetail.photoURL === "patient" ? ForthRoute : SecondRoute,
   });
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
     { key: "first", title: "DETAIL" },
-    { key: "second", title: "REVIEWS" },
+    {
+      key: "second",
+      title: userDetail.photoURL === "patient" ? "MEDICAL HISTORY" : "REVIEWS",
+    },
   ]);
   // End Tabs
 
@@ -211,7 +312,7 @@ export default function Account(props) {
     getDetail();
   }, []);
   return (
-    <View style={styles.body}>
+    <SafeAreaView style={styles.body}>
       <CustomText word="Account" style={styles.title} />
       <View style={{ paddingVertical: "5%" }}>
         <Avatar
@@ -244,7 +345,7 @@ export default function Account(props) {
             icon={<Icon name="folder" size={30} type="feather" color="white" />}
             onPress={pickImage}
           />
-          {uploading===false ? (
+          {uploading === false ? (
             <CustomButton title="Upload" onPress={uploadImage} />
           ) : (
             <ActivityIndicator size="large" color="red" />
@@ -273,36 +374,30 @@ export default function Account(props) {
           />
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  tab: {
-    paddingTop: "70%",
-  },
   body: {
     display: "flex",
     flexDirection: "column",
-    // alignItems: "center",
-    // justifyContent: "space-evenly",
     alignItems: "center",
     justifyContent: "space-between",
-    height: height,
-    paddingTop: "15%",
+    height: "100%",
+    backgroundColor: "white",
   },
   title: {
     color: "black",
     fontSize: 30,
   },
-  topContainer: {
+  detailContainer: {
     width: "100%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "space-between",
-    height: 300,
-    paddingTop: "5%",
+    justifyContent: "space-around",
+    paddingTop: "1%",
   },
   infoContainer: {
     display: "flex",

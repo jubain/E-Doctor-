@@ -35,6 +35,8 @@ export default function DoctorList(props) {
     hospital: "",
     availableTimes: "",
     reviews: [],
+    location: "",
+    phone: "",
   });
   const [doctorTimes, setdoctorTimes] = useState(null);
 
@@ -63,7 +65,9 @@ export default function DoctorList(props) {
       inputs.fname == "" ||
       inputs.lname == "" ||
       inputs.availableTimes == "" ||
-      inputs.password == ""
+      inputs.password == ""||
+      inputs.location==""||
+      inputs.phone==""
     ) {
       alert("Empty Field detected.");
       return;
@@ -73,7 +77,7 @@ export default function DoctorList(props) {
           tempArray.push(typedTimes[index]);
         } else {
           alert("Please enter valid times.");
-          setdoctorTimes(null)
+          setdoctorTimes(null);
           tempArray = [];
           break;
         }
@@ -97,8 +101,10 @@ export default function DoctorList(props) {
                   availableTimes: inputs.availableTimes.split(","),
                   hospital: userDetail.displayName,
                   reviews: [],
-                  photoURL:'doctor',
-                  password:inputs.password
+                  photoURL: "doctor",
+                  password: inputs.password,
+                  location:inputs.location,
+                  phone:inputs.phone
                 })
                 .then(() => {
                   getDoctors();
@@ -167,7 +173,7 @@ export default function DoctorList(props) {
           <ListItem.Subtitle>
             <CustomText
               word={item.faculty}
-              style={[styles.text, { fontSize: 12}]}
+              style={[styles.text, { fontSize: 12 }]}
             />
           </ListItem.Subtitle>
         </ListItem.Content>
@@ -190,7 +196,7 @@ export default function DoctorList(props) {
           data={doctors}
           keyExtractor={(item) => item.id}
           renderItem={renderDoctor}
-          style={{ paddingTop: "10%"}}
+          style={{ paddingTop: "10%" }}
         />
       </View>
 
@@ -310,6 +316,38 @@ export default function DoctorList(props) {
                 onChangeText={(text) =>
                   setinputs({ ...inputs, availableTimes: text })
                 }
+                inputContainerStyle={styles.doctorInput}
+              />
+            </View>
+          </View>
+          <View style={styles.doctorContainer}>
+            <View style={styles.doctorInputContainer}>
+              <Input
+                autoCapitalize="none"
+                autoCompleteType="off"
+                autoCorrect={false}
+                value={inputs.address}
+                inputStyle={styles.doctorInputInside}
+                label={<CustomText word="Location" style={{ color: "gray" }} />}
+                labelStyle={styles.labels}
+                placeholder="Kathmandu, Pokhara"
+                onChangeText={(text) =>
+                  setinputs({ ...inputs, location: text })
+                }
+                inputContainerStyle={styles.doctorInput}
+              />
+            </View>
+            <View style={styles.doctorInputContainer}>
+              <Input
+                autoCapitalize="none"
+                autoCompleteType="off"
+                autoCorrect={false}
+                value={inputs.phone}
+                inputStyle={styles.doctorInputInside}
+                label={<CustomText word="Phone" style={{ color: "gray" }} />}
+                labelStyle={styles.labels}
+                placeholder="e.g. +44 5234"
+                onChangeText={(text) => setinputs({ ...inputs, phone: text })}
                 inputContainerStyle={styles.doctorInput}
               />
             </View>

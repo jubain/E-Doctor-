@@ -22,6 +22,7 @@ import { useTheme } from "@react-navigation/native";
 import SelectDropdown from "react-native-select-dropdown";
 import firebase from "firebase";
 import LoginContext from "../context/LoginContext";
+import CustomText from "../components/CustomText";
 
 const windowHeight = Dimensions.get("window").height;
 
@@ -93,14 +94,6 @@ function UserDetails(props) {
   // Badge
   const [badgeMessage, setbadgeMessage] = useState("");
   const [badgeColour, setbadgeColour] = useState("");
-  // , "Hay Fever", "Heart Disease",
-  //     "Hepatitis A,B or C", "High Blood Pressure", "High Cholesterol", "Kidney Problem",
-  //     "Liver Disease", "Lungs Disease", "Low Blood Pressure", "Others"
-  // const Item = ({ item, onPress, backgroundColor, textColor }) => (
-  //     <TouchableOpacity onPress={onPress} style={[styles.item, backgroundColor]}>
-  //         <Text style={[styles.title, textColor]}>{item.id}</Text>
-  //     </TouchableOpacity>
-  // );
   const [backgroundColour, setbackgroundColour] = useState("white");
 
   const removeDisease = ({ item }) => {
@@ -118,7 +111,9 @@ function UserDetails(props) {
         onPress={() => {
           let tempArray = [...selectedId];
           if (tempArray.findIndex((obj) => obj.id === item.id) != -1) {
-            console.log("exist");
+            setbadgeMessage(`${item.name} already added`)
+            setbadgeColour("danger");
+            console.log('exist')
           } else {
             console.log("not exist");
             tempArray.push(item);
@@ -143,7 +138,6 @@ function UserDetails(props) {
   };
 
   const updateUserDetail = () => {
-    console.log(medicalHistory)
     db.collection("users").doc(userDetail.uid).update({
         dob: dob,
         gender: userGender,
@@ -173,15 +167,15 @@ function UserDetails(props) {
 
   const renderMedicalHistory = ({ item }) => {
     return (
-      <TouchableOpacity>
-        <ListItem bottomDivider>
-          <ListItem.Content>
-            <ListItem.Title style={{ fontSize: 13 }}>
-              {item.name}
-            </ListItem.Title>
-          </ListItem.Content>
-        </ListItem>
-      </TouchableOpacity>
+        // <ListItem bottomDivider containerStyle={{height:'15%'}}>
+        //   <ListItem.Content>
+        //     <CustomText word={item.name}/>
+        //     {/* <ListItem.Title style={{ fontSize: 13,color:'black' }}>
+        //       {item.name}
+        //     </ListItem.Title> */}
+        //   </ListItem.Content>
+        // </ListItem>
+        <CustomText word={item.name}/>
     );
   };
 
@@ -195,50 +189,16 @@ function UserDetails(props) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        paddingTop: 20,
         backgroundColor: colors.primary,
-        height: windowHeight,
+        paddingTop:12
       }}
     >
-      {/* {badgeMessage != "" ?
+      {badgeMessage != "" ?
                 <Badge containerStyle={{ position: 'absolute' }} textStyle={{ fontWeight: 'bold' }} status={badgeColour} value={badgeMessage} />
-                : null} */}
-      <View style={styles.dob}>
-        <Text style={{ fontWeight: "bold" }}>Date of Birth</Text>
-       
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={date}
-            mode={mode}
-            is24Hour={true}
-            display="default"
-            onChange={onChange}
-            style={{ width: "37%", backgroundColor: "white" }}
-          />
-      
-      </View>
+                : null}
 
-      <View style={styles.gender}>
-        <View style={{ width: "33%" }}>
-          <Text style={{ fontWeight: "bold" }}>Gender</Text>
-        </View>
-        <View style={{ width: "50%" }}>
-          <SelectDropdown
-            data={gender}
-            defaultButtonText={userGender}
-            onSelect={(selectedItem, index) => {
-              console.log(selectedItem);
-              setuserGender(selectedItem);
-            }}
-            buttonStyle={{ width: "95%", borderRadius: 5 }}
-            buttonTextStyle={{ fontSize: 15 }}
-            rowTextStyle={{ fontSize: 15 }}
-          />
-        </View>
-      </View>
-
-      <Text style={{ fontSize: 15, fontWeight: "bold" }}>Medical History</Text>
-      <View style={{ height: "15%", width: "100%" }}>
+      <Text style={{ fontSize: 15, fontWeight: "bold" }}>Your Medical History</Text>
+      <View style={{  width: "100%",height:'30%' }}>
         <FlatList
           data={medicalHistory}
           keyExtractor={(item) => item.id}
@@ -247,7 +207,7 @@ function UserDetails(props) {
       </View>
 
       {selectedId.length !== 0 ? (
-        <View style={{ height: "5%" }}>
+        <View style={{ height: "10%" }}>
           <FlatList
             data={selectedId}
             horizontal={true}
@@ -287,10 +247,10 @@ function UserDetails(props) {
           keyExtractor={(item) => item.id}
         />
       </View>
-      <View style={{ width: "100%" }}>
+      <View style={{ width: "90%" }}>
         <Button
           title="Save"
-          buttonStyle={{ backgroundColor: colors.secondary }}
+          buttonStyle={{ backgroundColor: colors.secondary,marginTop:10 }}
           onPress={updateUserDetail}
         ></Button>
       </View>

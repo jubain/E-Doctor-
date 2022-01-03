@@ -32,7 +32,8 @@ function Test(props) {
       tabBarOptions={{
         tabStyle: {
           backgroundColor: colors.secondary,
-          height: bottmHeight,
+          height: 60,
+          paddingVertical: 10,
         },
         labelStyle: { fontSize: 14 },
       }}
@@ -96,7 +97,7 @@ function Test(props) {
             />
           );
         },
-        tabBarActiveTintColor: "red",
+        tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "gray",
         tabBarLabel: tabName,
       })}
@@ -112,7 +113,11 @@ function Test(props) {
         <>
           <Tab.Screen name="Bookings" component={Bookings} />
           <Tab.Screen name="Book" component={BookAppointments} />
-          <Tab.Screen name="UserDetails" component={UserDetails} />
+          <Tab.Screen
+            name="UserDetails"
+            options={{ title: "Account" }}
+            component={Account}
+          />
         </>
       ) : null}
       {userDetail.photoURL === "hospital" ? (
