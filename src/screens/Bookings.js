@@ -28,14 +28,6 @@ function Bookings(props) {
   const { userDetail } = useContext(LoginContext);
   const [loadingBookings, setloadingBookings] = useState(false);
 
-  const checkPrevBookingDate = () => {
-    bookings.map((item) => {
-      if (item.date > day.slice(4, 15)) {
-        return item.date;
-      }
-    });
-  };
-
   const renderItem = ({ item }) => {
     if (item.date > day.slice(4, 15)) {
       return (
@@ -95,7 +87,21 @@ function Bookings(props) {
   const renderPastBooking = ({ item }) => {
     if (item.date < day.slice(4, 15)) {
       return (
-        <ListItem>
+        <ListItem
+          bottomDivider
+          onPress={() =>
+            props.navigation.navigate("Chat", {
+              bookingId: item.bookingId,
+              doctor: item.doctorName,
+              doctorEmail: item.doctorEmail,
+              patientName: item.patientName,
+              patientEmail: item.pateintEmail,
+              time: item.time,
+              date: item.date,
+              email: item.doctorEmail,
+            })
+          }
+        >
           <ListItem.Content>
             <View
               style={[
@@ -124,6 +130,7 @@ function Bookings(props) {
                 : item.patientName}
             </ListItem.Title>
           </ListItem.Content>
+          <ListItem.Chevron />
         </ListItem>
       );
     }
@@ -142,6 +149,7 @@ function Bookings(props) {
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           tempArray.push(doc.data());
+          console.log(doc.data())
         });
         setbookings(tempArray);
         setloadingBookings(false);
@@ -184,31 +192,35 @@ function Bookings(props) {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "space-between",
-            height:'100%',
+            height: "100%",
           }}
         >
           <CustomText
             word="New Bookings"
             style={{ color: "black", fontSize: 18 }}
           />
+           {bookings!==[]?
           <FlatList
             data={bookings}
             renderItem={renderItem}
             keyExtractor={(item) => item.pateintEmail}
             setBook={setcanBook}
-            style={{ width: "90%"}}
-          />
+            style={{ width: "90%",height:'30%' }}
+          />:<CustomText word="No new bookings" style={{color:'black'}}/>}
           <CustomText
             word="Old Bookings"
             style={{ color: "black", fontSize: 18 }}
           />
-          <FlatList
-            data={bookings}
-            renderItem={renderPastBooking}
-            keyExtractor={(item) => item.pateintEmail}
-            setBook={setcanBook}
-            style={{ width: "90%" }}
-          />
+          {bookings!==[]?
+           <FlatList
+           data={bookings}
+           renderItem={renderPastBooking}
+           keyExtractor={(item) => item.pateintEmail}
+           setBook={setcanBook}
+           style={{ width: "90%", height: "30%" }}
+         />
+          :<CustomText word="No old bookings" style={{color:'black'}}/>}
+         
           {userDetail.photoURL == "patient" ? (
             <View style={styles.bookButton}>
               <Button
@@ -234,7 +246,7 @@ function Bookings(props) {
 
 const styles = StyleSheet.create({
   bookButton: {
-    alignItems: "center"
+    alignItems: "center",
   },
   text: {
     color: "white",

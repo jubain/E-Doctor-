@@ -9,6 +9,8 @@ export const LoginProvider = ({ children }) => {
         setuserDetail(currentuserDetail)
     }
 
+    
+
     return <LoginContext.Provider value={{ userDetail, getCurrentUser }}>
         {children}
     </LoginContext.Provider>

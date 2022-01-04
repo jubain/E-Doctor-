@@ -53,17 +53,17 @@ function DashBoard(props) {
     setloading(false);
     let tempArray = [];
     db.collection(
-      userDetail.photoURL === "patient"
-        ? "users"
-        : userDetail.photoURL === "doctor"
-        ? "doctors"
-        : "hospitals"
+      // userDetail.photoURL === "patient"
+      //   ? "users"
+      //   : userDetail.photoURL === "doctor"
+      //   ? "doctors"
+      //   : "hospitals"
+      "hospitals"
     )
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           tempArray.push(doc.data());
-          console.log(doc.data());
         });
         setfoundHospitals(tempArray);
       })
@@ -91,10 +91,6 @@ function DashBoard(props) {
     setVisible(!visible);
   };
   // Setting Overlay Ends
-
-  useEffect(() => {
-    getDetail();
-  }, []);
 
   const renderItem = ({ item }) => {
     return (
@@ -164,6 +160,7 @@ function DashBoard(props) {
     //   let location = await Location.getCurrentPositionAsync({});
     //   setLocation(location);
     // })();
+    getDetail();
     (async () => {
       if (Platform.OS !== "web") {
         const { status } =

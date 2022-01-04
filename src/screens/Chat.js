@@ -1,10 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Alert, FlatList} from "react-native";
-import {
-  StyleSheet,
-  View,
-  ImageBackground,
-} from "react-native";
+import { Alert, FlatList } from "react-native";
+import { StyleSheet, View, ImageBackground } from "react-native";
 import { TextInput, Text } from "react-native";
 import firebase from "firebase";
 import LoginContext from "../context/LoginContext";
@@ -21,7 +17,9 @@ function Chat(props) {
   const time = props.route.params.time;
   const [messageAndChat, setmessageAndChat] = useState();
   const db = firebase.firestore();
-  const {colors} = useTheme()
+  const { colors } = useTheme();
+  const day = new Date();
+  const currentDate = `${day}`;
 
   const [textFieldTouched, settextFieldTouched] = useState(false);
 
@@ -39,10 +37,10 @@ function Chat(props) {
         ]}
       >
         {item.userId !== userDetail.email && (
-          <CustomText style={styles.name} word={item.userId}/>
+          <CustomText style={styles.name} word={item.userId} />
           // <Text style={styles.name}>{item.userId}</Text>
         )}
-        <CustomText word={item.message} style={styles.message}/>
+        <CustomText word={item.message} style={styles.message} />
         {/* <Text selectable={true} style={styles.message}>
           {item.message}
         </Text> */}
@@ -92,7 +90,6 @@ function Chat(props) {
   };
 
   const getChatData = () => {
-    
     db.collection("chats")
       .where(
         userDetail.photoURL === "patient" ? "patientEmail" : "doctorEmail",
@@ -114,7 +111,6 @@ function Chat(props) {
         }
         querySnapshot.forEach((doc) => {
           doc.data().contents.forEach((data) => {
-            console.log(doc.data());
             tempArray.push(data);
           });
         });
@@ -127,21 +123,23 @@ function Chat(props) {
 
   useEffect(() => {
     getChatData();
-    Alert.alert(
-      "Dear User",
-      "You will have 1 minutes for this chat box. After that you will be taken out from the chat room. Thank you.",
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          onPress: () => {},
-        },
-      ]
-    );
+    if (props.route.params.date > currentDate.slice(4, 15)) {
+      Alert.alert(
+        "Dear User",
+        "You will have 1 minutes for this chat box. After that you will be taken out from the chat room. Thank you.",
+        [
+          {
+            text: "Cancel",
+            onPress: () => console.log("Cancel Pressed"),
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            onPress: () => {},
+          },
+        ]
+      );
+    }
   }, []);
 
   return (
@@ -159,28 +157,33 @@ function Chat(props) {
         }}
         //style={textFieldTouched === true ? { marginBottom: 300 } : null}
       />
-      <View
-        style={
-          styles.textAndButtonContainer
-        }
-      >
-        <View style={styles.textContainer}>
-          <TextInput
-            value={message}
-            numberOfLines={6}
-            multiline
-            style={{ flex: 1 }}
-            placeholder="Type here..."
-            onChangeText={setmessage}
-            // onTouchStart={() => {
-            //   settextFieldTouched(true);
-            // }}
-            //style={textFieldTouched === true ? {} : null}
+      {props.route.params.date > currentDate.slice(4, 15) ? (
+        <View style={styles.textAndButtonContainer}>
+          <View style={styles.textContainer}>
+            <TextInput
+              value={message}
+              numberOfLines={6}
+              multiline
+              style={{ flex: 1 }}
+              placeholder="Type here..."
+              onChangeText={setmessage}
+              // onTouchStart={() => {
+              //   settextFieldTouched(true);
+              // }}
+              //style={textFieldTouched === true ? {} : null}
+            />
+          </View>
+          <CustomButton
+            title="Send"
+            onPress={sendChat}
+            buttonStyle={{
+              height: "100%",
+              borderTopRightRadius: 10,
+              borderBottomRightRadius: 10,
+            }}
           />
         </View>
-        <CustomButton title="Send" onPress={sendChat} buttonStyle={{height:'100%',borderTopRightRadius:10,borderBottomRightRadius:10}}/>
-       
-      </View>
+      ) : null}
     </ImageBackground>
   );
 }
@@ -197,7 +200,7 @@ const styles = StyleSheet.create({
     marginRight: 50,
     borderRadius: 5,
     padding: 10,
-    height:50
+    height: 50,
   },
   name: {
     fontWeight: "bold",
@@ -206,7 +209,7 @@ const styles = StyleSheet.create({
   },
   message: {
     color: "white",
-    fontSize:18
+    fontSize: 18,
   },
   time: {
     color: "white",
@@ -223,11 +226,11 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 15,
   },
   textAndButtonContainer: {
-    height:'6%',
-    marginBottom:20,
-    display:'flex',
-    flexDirection:'row',
-    paddingHorizontal:10
+    height: "6%",
+    marginBottom: 20,
+    display: "flex",
+    flexDirection: "row",
+    paddingHorizontal: 10,
   },
   textAndButtonContainerAfterKeyboard: {
     marginHorizontal: 10,
@@ -244,7 +247,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sendButton: {
-    height: '100%',
+    height: "100%",
   },
 });
 

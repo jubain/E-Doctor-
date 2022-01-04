@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import firebase from "firebase/app";
 import { firebaseConfig } from "./src/config/config";
 import { StyleSheet, View, Platform, Dimensions, Linking } from "react-native";
@@ -58,6 +58,8 @@ const App = (props) => {
   const Tab = createBottomTabNavigator();
   const { userDetail } = useContext(LoginContext);
   const [isSignedIn, setisSignedIn] = useState(false);
+  const day = new Date();
+  const currentDate = `${day}`;
   const myTheme = {
     ...DefaultTheme,
     colors: {
@@ -70,6 +72,7 @@ const App = (props) => {
   {
     console.log(isSignedIn);
   }
+
   return (
     <>
       <SafeAreaProvider>
@@ -200,6 +203,7 @@ const App = (props) => {
                     onPress={() => navigation.goBack()}
                   />
                 ),
+
                 headerRight: () => (
                   <View
                     style={{
@@ -209,14 +213,15 @@ const App = (props) => {
                       marginRight: 10,
                     }}
                   >
-                    <Icon
-                      name="phone"
-                      type="font-awesome"
-                      onPress={() => {
-                        console.log(route.params);
-                        Linking.openURL(`tel:07842583541`);
-                      }}
-                    />
+                    {route.params.date > currentDate.slice(4, 15) ? (
+                      <Icon
+                        name="phone"
+                        type="font-awesome"
+                        onPress={() => {
+                          Linking.openURL(`tel:07842583541`);
+                        }}
+                      />
+                    ) : null}
                   </View>
                 ),
               })}

@@ -49,7 +49,7 @@ function UserDetails(props) {
   const [date, setDate] = useState(new Date(1598051730000));
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
-  const [infoUpdated, setinfoUpdated] = useState(false)
+  const [infoUpdated, setinfoUpdated] = useState(false);
 
   const onChange = (event, selectedDate) => {
     setbuttonColour("#dddddd");
@@ -111,9 +111,9 @@ function UserDetails(props) {
         onPress={() => {
           let tempArray = [...selectedId];
           if (tempArray.findIndex((obj) => obj.id === item.id) != -1) {
-            setbadgeMessage(`${item.name} already added`)
+            setbadgeMessage(`${item.name} already added`);
             setbadgeColour("danger");
-            console.log('exist')
+            console.log("exist");
           } else {
             console.log("not exist");
             tempArray.push(item);
@@ -138,18 +138,22 @@ function UserDetails(props) {
   };
 
   const updateUserDetail = () => {
-    db.collection("users").doc(userDetail.uid).update({
+    db.collection("users")
+      .doc(userDetail.uid)
+      .update({
         dob: dob,
         gender: userGender,
-        medicalHistory: selectedId
-    }).then(() => {
-      Alert.alert("User detail updated")
-      setinfoUpdated(true)
-      setSelectedId([])
-        console.log('user detail updated')
-    }).catch(err => {
-        console.log(err)
-    })
+        medicalHistory: selectedId,
+      })
+      .then(() => {
+        Alert.alert("User detail updated");
+        setinfoUpdated(true);
+        setSelectedId([]);
+        console.log("user detail updated");
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const getUserDetail = () => {
@@ -167,21 +171,22 @@ function UserDetails(props) {
 
   const renderMedicalHistory = ({ item }) => {
     return (
-        // <ListItem bottomDivider containerStyle={{height:'15%'}}>
-        //   <ListItem.Content>
-        //     <CustomText word={item.name}/>
-        //     {/* <ListItem.Title style={{ fontSize: 13,color:'black' }}>
-        //       {item.name}
-        //     </ListItem.Title> */}
-        //   </ListItem.Content>
-        // </ListItem>
-        <CustomText word={item.name}/>
+      // <ListItem >
+      //   <ListItem.Content>
+      //     <CustomText word={item.name} style={{ color: "black" }} />
+      //     {/* <ListItem.Title style={{ fontSize: 13,color:'black' }}>
+      //         {item.name}
+      //       </ListItem.Title> */}
+      //     <Text>{item.name}</Text>
+      //   </ListItem.Content>
+      // </ListItem>
+      <Text>{item.name}</Text>
     );
   };
 
   useEffect(() => {
     getUserDetail();
-  }, [infoUpdated===true]);
+  }, [infoUpdated === true]);
 
   return (
     <View
@@ -190,15 +195,22 @@ function UserDetails(props) {
         flexDirection: "column",
         alignItems: "center",
         backgroundColor: colors.primary,
-        paddingTop:12
+        paddingTop: 12,
       }}
     >
-      {badgeMessage != "" ?
-                <Badge containerStyle={{ position: 'absolute' }} textStyle={{ fontWeight: 'bold' }} status={badgeColour} value={badgeMessage} />
-                : null}
+      {badgeMessage != "" ? (
+        <Badge
+          containerStyle={{ position: "absolute" }}
+          textStyle={{ fontWeight: "bold" }}
+          status={badgeColour}
+          value={badgeMessage}
+        />
+      ) : null}
 
-      <Text style={{ fontSize: 15, fontWeight: "bold" }}>Your Medical History</Text>
-      <View style={{  width: "100%",height:'30%' }}>
+      <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+        Your Medical History
+      </Text>
+      <View style={{ width: "100%", height: "30%" }}>
         <FlatList
           data={medicalHistory}
           keyExtractor={(item) => item.id}
@@ -250,7 +262,7 @@ function UserDetails(props) {
       <View style={{ width: "90%" }}>
         <Button
           title="Save"
-          buttonStyle={{ backgroundColor: colors.secondary,marginTop:10 }}
+          buttonStyle={{ backgroundColor: colors.secondary, marginTop: 10 }}
           onPress={updateUserDetail}
         ></Button>
       </View>
@@ -266,7 +278,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "90%",
-    marginVertical:40
+    marginVertical: 40,
   },
   gender: {
     display: "flex",
