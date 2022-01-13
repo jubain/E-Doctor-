@@ -213,7 +213,7 @@ const App = (props) => {
                       marginRight: 10,
                     }}
                   >
-                    {route.params.date > currentDate.slice(4, 15) ? (
+                    {route.params.date >= currentDate.slice(4, 15) ? (
                       <Icon
                         name="phone"
                         type="font-awesome"

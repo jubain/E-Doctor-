@@ -53,11 +53,6 @@ function DashBoard(props) {
     setloading(false);
     let tempArray = [];
     db.collection(
-      // userDetail.photoURL === "patient"
-      //   ? "users"
-      //   : userDetail.photoURL === "doctor"
-      //   ? "doctors"
-      //   : "hospitals"
       "hospitals"
     )
       .get()
@@ -142,7 +137,7 @@ function DashBoard(props) {
 
   function checkBookingDate() {
     if (bookings != null) {
-      const newBooking = bookings.filter((date) => date > day.slice(4, 15));
+      const newBooking = bookings.filter((date) => date >= day.slice(4, 15));
       const oldBooking = bookings.filter((date) => date < day.slice(4, 15));
       setnewBookings(newBooking.length);
       setoldBookings(oldBooking.length);

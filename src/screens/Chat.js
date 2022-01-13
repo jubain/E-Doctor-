@@ -107,7 +107,7 @@ function Chat(props) {
       .then((querySnapshot) => {
         let tempArray = [];
         if (querySnapshot.empty) {
-          console.log("empty cha");
+          console.log("empty chat");
         }
         querySnapshot.forEach((doc) => {
           doc.data().contents.forEach((data) => {
@@ -120,10 +120,13 @@ function Chat(props) {
         console.log("Error getting documents: ", error);
       });
   };
-
+setTimeout(() => {
+  getChatData();
+}, 100);
   useEffect(() => {
     getChatData();
-    if (props.route.params.date > currentDate.slice(4, 15)) {
+    
+    if (props.route.params.date >= currentDate.slice(4, 15)) {
       Alert.alert(
         "Dear User",
         "You will have 1 minutes for this chat box. After that you will be taken out from the chat room. Thank you.",
@@ -157,7 +160,7 @@ function Chat(props) {
         }}
         //style={textFieldTouched === true ? { marginBottom: 300 } : null}
       />
-      {props.route.params.date > currentDate.slice(4, 15) ? (
+      {props.route.params.date > currentDate.slice(4, 15)||props.route.params.date == currentDate.slice(4, 15) ? (
         <View style={styles.textAndButtonContainer}>
           <View style={styles.textContainer}>
             <TextInput

@@ -16,20 +16,21 @@ const db = firebase.firestore();
 const height = Dimensions.get("window").height;
 export default function PatientsList(props) {
   const { userDetail } = useContext(LoginContext);
-  const [patientsFound, setpatientsFound] = useState("")
+  const [patientsFound, setpatientsFound] = useState("");
   const [list, setlist] = useState();
   const getPatients = () => {
     let tempArray = [];
     db.collection("bookings")
       .where("doctorEmail", "==", userDetail.email)
-      .where("pateintEmail", "==", "patient@patient.com")
+      // .where("pateintEmail", "==", "patient@patient.com")
       .get()
       .then((querySnapshot) => {
         if (querySnapshot.empty) {
-          setpatientsFound("0 Patient Found.")
+          setpatientsFound("0 Patient Found.");
         } else {
           querySnapshot.forEach((doc) => {
             // doc.data() is never undefined for query doc snapshots
+            console.log(doc.data());
             tempArray.push(doc.data());
           });
           setlist(tempArray);
@@ -42,17 +43,16 @@ export default function PatientsList(props) {
 
   const renderPatients = ({ item }) => {
     return (
-      <TouchableOpacity
+      <ListItem
         onPress={() => {
           props.navigation.navigate("PatientHistory", {
             patient: item.pateintEmail,
           });
         }}
       >
-        <ListItem>
-          <ListItem.Title>{item.patientName}</ListItem.Title>
-        </ListItem>
-      </TouchableOpacity>
+        <ListItem.Title>{item.patientName}</ListItem.Title>
+        <ListItem.Chevron />
+      </ListItem>
     );
   };
 
@@ -68,9 +68,10 @@ export default function PatientsList(props) {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        paddingTop: 20,
       }}
     >
-      <CustomText word={patientsFound} style={{color:'black'}}/>
+      <CustomText word={patientsFound} style={{ color: "black" }} />
       <FlatList
         data={list}
         keyExtractor={(item) => item.id}

@@ -29,7 +29,7 @@ function Bookings(props) {
   const [loadingBookings, setloadingBookings] = useState(false);
 
   const renderItem = ({ item }) => {
-    if (item.date > day.slice(4, 15)) {
+    if (item.date > day.slice(4, 15) || item.date == day.slice(4, 15)) {
       return (
         <ListItem
           onPress={() =>
@@ -149,7 +149,6 @@ function Bookings(props) {
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           tempArray.push(doc.data());
-          console.log(doc.data())
         });
         setbookings(tempArray);
         setloadingBookings(false);
@@ -158,9 +157,9 @@ function Bookings(props) {
         console.log("Error getting documents: ", error);
       });
   };
-
+  
   useEffect(() => {
-    getBookings();
+    getBookings()
   }, []);
 
   return (

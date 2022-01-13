@@ -6,6 +6,7 @@ import {
   FlatList,
   Alert,
   StyleSheet,
+  Platform,
 } from "react-native";
 import {
   Avatar,
@@ -22,6 +23,7 @@ import SelectDropdown from "react-native-select-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import LoginContext from "../context/LoginContext";
 import CustomButton from "../components/CustomButton";
+import CustomText from "../components/CustomText";
 
 function Doctor(props) {
   const doctor = props.route.params.item;
@@ -45,6 +47,7 @@ function Doctor(props) {
 
   // Date picker
   const [date, setDate] = useState(new Date());
+  const [minDate, setminDate] = useState(new Date());
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
 
@@ -64,7 +67,6 @@ function Doctor(props) {
   const showDatepicker = () => {
     showMode("date");
   };
-
   // Date picker ends
 
   // Modal
@@ -90,7 +92,7 @@ function Doctor(props) {
       patientEmail: userDetail.email,
       date: userSelectedDate.toString().slice(4, 15),
       time: userSelectedTime,
-      hospital: hospital
+      hospital: hospital,
     });
   };
 
@@ -243,7 +245,16 @@ function Doctor(props) {
       });
   };
   const Booking = () => (
-    <View style={{height:'100%',display:'flex',flexDirection:'column',alignItems:'flex-start',justifyContent:'space-evenly',paddingHorizontal:10}}>
+    <View
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "space-evenly",
+        paddingHorizontal: 10,
+      }}
+    >
       <View
         style={{
           display: "flex",
@@ -251,7 +262,7 @@ function Doctor(props) {
           alignItems: "center",
           flexDirection: "row",
           paddingTop: 10,
-          width:'100%'
+          width: "100%",
         }}
       >
         <Text>Time:</Text>
@@ -278,7 +289,7 @@ function Doctor(props) {
           justifyContent: "space-evenly",
           alignItems: "center",
           flexDirection: "row",
-          width:'100%'
+          width: "100%",
         }}
       >
         <Text>
@@ -326,10 +337,18 @@ function Doctor(props) {
               width: 200,
               backgroundColor: "rgb(242,242,242)",
             }}
-            minimumDate={date}
+            minimumDate={minDate}
           />
         )}
       </View>
+      {Platform.OS === "android" ? (
+        <View style={{ width: "100%", alignItems: "center" }}>
+          <CustomText
+            style={{ color: "black", fontSize: 20 }}
+            word={`${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`}
+          />
+        </View>
+      ) : null}
     </View>
   );
 
